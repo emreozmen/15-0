@@ -1,0 +1,19 @@
+[
+  {
+    "id": "sample-mbappe-gold-st",
+    "name": "Kylian Mbappe",
+    "pos": "ST",
+    "nation": "France",
+    "league": "LaLiga",
+    "club": "Real Madrid",
+    "cardType": "Gold Rare",
+    "ovr": 91,
+    "pac": 97,
+    "sho": 90,
+    "pas": 82,
+    "dri": 92,
+    "def": 36,
+    "phy": 78,
+    "clutch": 91
+  }
+]

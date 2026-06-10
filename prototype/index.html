@@ -1,0 +1,3364 @@
+﻿<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>15-0 Draft Sim</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070c14;
+      --navy: #14113d;
+      --panel: #101b2b;
+      --panel-2: #162338;
+      --line: #263b5a;
+      --text: #f5f7ff;
+      --muted: #93a4c0;
+      --gold: #ffd43b;
+      --green: #95ec43;
+      --lime: #79df3a;
+      --blue: #36a3ff;
+      --red: #ff4d5c;
+      --orange: #ff941f;
+      --cyan: #54d8ff;
+      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Segoe UI Condensed", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(80, 69, 190, .46), transparent 25rem),
+        linear-gradient(180deg, #21174f 0%, #080d16 72%);
+      color: var(--text);
+      letter-spacing: .02em;
+    }
+
+    button {
+      color: inherit;
+      font: inherit;
+      letter-spacing: inherit;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: max(12px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .screen.active { display: flex; }
+
+    .setup-screen {
+      justify-content: center;
+      min-height: calc(100vh - 28px);
+      padding: 20px 0;
+    }
+
+    .setup-brand {
+      text-align: center;
+      display: grid;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .setup-brand strong {
+      font-size: 74px;
+      line-height: .9;
+      color: var(--gold);
+      text-shadow: 0 0 24px rgba(255, 212, 59, .2);
+    }
+
+    .setup-brand strong span { color: #e7ecff; }
+
+    .setup-brand small {
+      color: #9eaed0;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .42em;
+    }
+
+    .step-kicker {
+      color: var(--gold);
+      font-size: 12px;
+      text-align: center;
+      letter-spacing: .2em;
+    }
+
+    .setup-title {
+      margin: 0;
+      text-align: center;
+      font-size: 28px;
+      letter-spacing: .06em;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .setup-option {
+      width: 100%;
+      min-height: 60px;
+      border: 1px solid rgba(84, 216, 255, .14);
+      border-radius: 10px;
+      background: #101b2b;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .02);
+    }
+
+    .setup-option b {
+      color: var(--green);
+      font-size: 27px;
+      line-height: 1;
+    }
+
+    .setup-option strong {
+      color: var(--blue);
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    .setup-option span {
+      max-width: 48%;
+      color: #9ca9c1;
+      font: 700 11px/1.2 Arial, sans-serif;
+      text-align: right;
+      letter-spacing: 0;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      color: #b4c2d8;
+      font: 800 11px/1 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .legend i {
+      display: inline-block;
+      width: 10px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: -1px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .mini-brand {
+      color: var(--gold);
+      font-size: 30px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .mini-brand span { color: #eef2ff; }
+
+    .sub-brand {
+      color: #9ca9c1;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .22em;
+    }
+
+    .icon-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(84, 216, 255, .15);
+      background: #101b2b;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .result-actions {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .info-card {
+      min-height: 54px;
+      border: 1px solid rgba(84, 216, 255, .15);
+      border-radius: 10px;
+      background: #101b2b;
+      padding: 8px 10px;
+      overflow: hidden;
+    }
+
+    .info-card small {
+      display: block;
+      color: #8798b7;
+      font-size: 10px;
+      letter-spacing: .18em;
+    }
+
+    .info-card b {
+      display: block;
+      margin-top: 2px;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .manager-strip {
+      min-height: 40px;
+      border: 1px solid rgba(84, 216, 255, .15);
+      border-radius: 10px;
+      background: linear-gradient(90deg, rgba(255, 212, 59, .15), rgba(16, 27, 43, .92));
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .manager-strip small {
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: .18em;
+    }
+
+    .manager-strip b {
+      font-size: 16px;
+      color: #f6f8ff;
+    }
+
+    .draft-board {
+      position: relative;
+      aspect-ratio: 1080 / 1088;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid rgba(92, 214, 93, .4);
+      background:
+        linear-gradient(rgba(6, 16, 12, .14), rgba(6, 16, 12, .25)),
+        url("assets/draft-pitch.png") center / cover no-repeat;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .38);
+    }
+
+    .draft-board:after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(7, 12, 20, .03), rgba(7, 12, 20, .18));
+      pointer-events: none;
+    }
+
+    .slot {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: 66px;
+      min-height: 88px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      z-index: 2;
+    }
+
+    .slot.placeable .slot-card,
+    .bench-slot.placeable {
+      cursor: pointer;
+      box-shadow: 0 0 0 2px rgba(149, 236, 67, .68), 0 0 18px rgba(149, 236, 67, .3);
+    }
+
+    .slot.blocked {
+      opacity: .55;
+    }
+
+    .slot-card {
+      width: 58px;
+      height: 76px;
+      border: 2px dashed var(--role);
+      border-radius: 14px 14px 9px 9px;
+      background: rgba(18, 22, 26, .72);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .36);
+    }
+
+    .slot-card.empty:before {
+      content: "+";
+      width: 26px;
+      aspect-ratio: 1;
+      border: 2px solid #00e572;
+      border-radius: 50%;
+      color: #00e572;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .slot-card.filled { border: 0; background: transparent; box-shadow: none; }
+
+    .slot .fc-card {
+      width: 58px;
+      height: 76px;
+    }
+
+    .slot.swap-target .slot-card,
+    .bench-slot.swap-source,
+    .bench-slot.swap-target {
+      cursor: pointer;
+      box-shadow: 0 0 0 2px rgba(84, 216, 255, .78), 0 0 20px rgba(84, 216, 255, .28);
+    }
+
+    .fc-card {
+      position: relative;
+      width: 72px;
+      height: 94px;
+      border-radius: 12px 12px 8px 8px;
+      overflow: hidden;
+      background: var(--card-bg, linear-gradient(135deg, #f8d777, #5d4318));
+      border: 1px solid rgba(255,255,255,.28);
+      box-shadow: 0 8px 18px rgba(0,0,0,.42);
+      color: #111;
+    }
+
+    .fc-card:before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1px solid rgba(255,255,255,.32);
+      border-radius: 9px 9px 6px 6px;
+      pointer-events: none;
+    }
+
+    .fc-card.gold { --card-bg: linear-gradient(135deg, #f8dc84 0%, #b1862f 55%, #4d3512 100%); }
+    .fc-card.toty { --card-bg: linear-gradient(135deg, #151b56 0%, #1162bb 42%, #e6c66d 100%); color: #fff; }
+    .fc-card.thunder { --card-bg: linear-gradient(135deg, #1b101e 0%, #ff7a18 46%, #111 100%); color: #fff; }
+    .fc-card.promo { --card-bg: linear-gradient(135deg, #001f36 0%, #00a7ff 42%, #a7ff4d 100%); color: #fff; }
+    .fc-card.icon { --card-bg: linear-gradient(135deg, #fbf4db 0%, #c8a86b 58%, #fff 100%); }
+    .fc-card.real-card {
+      background: center / contain no-repeat var(--card-image), transparent;
+      border: 0;
+      box-shadow: 0 10px 22px rgba(0,0,0,.48);
+    }
+
+    .fc-card.real-card:before { display: none; }
+
+    .fc-card.real-card .fc-rating,
+    .fc-card.real-card .fc-pos,
+    .fc-card.real-card .fc-photo,
+    .fc-card.real-card .fc-name,
+    .fc-card.real-card .fc-stats {
+      opacity: 0;
+    }
+
+    .fc-rating {
+      position: absolute;
+      left: 6px;
+      top: 7px;
+      font-size: 18px;
+      line-height: .9;
+      color: inherit;
+      text-shadow: 0 1px 2px rgba(0,0,0,.35);
+      z-index: 2;
+    }
+
+    .fc-pos {
+      position: absolute;
+      left: 7px;
+      top: 25px;
+      font: 900 8px/1 Arial, sans-serif;
+      color: inherit;
+      z-index: 2;
+    }
+
+    .fc-photo {
+      position: absolute;
+      right: -4px;
+      top: 15px;
+      width: 54px;
+      height: 54px;
+      background: center / cover no-repeat;
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,.45));
+      z-index: 1;
+    }
+
+    .fc-name {
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      bottom: 22px;
+      text-align: center;
+      font-size: 9px;
+      color: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45);
+      z-index: 3;
+    }
+
+    .fc-stats {
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      bottom: 7px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      color: inherit;
+      font: 800 6px/1 Arial, sans-serif;
+      text-align: center;
+      z-index: 3;
+    }
+
+    .chem-diamonds {
+      display: flex;
+      gap: 2px;
+      justify-content: center;
+      margin-top: -2px;
+    }
+
+    .chem-diamonds i {
+      width: 7px;
+      height: 7px;
+      transform: rotate(45deg);
+      background: #324153;
+      border: 1px solid rgba(255,255,255,.16);
+    }
+
+    .chem-diamonds i.on {
+      background: #39e58d;
+      box-shadow: 0 0 8px rgba(57, 229, 141, .5);
+    }
+
+    .role-pill {
+      min-width: 34px;
+      border-radius: 999px;
+      padding: 3px 6px;
+      background: #141821;
+      color: #f9fbff;
+      font: 900 9px/1 Arial, sans-serif;
+      letter-spacing: 0;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, .1);
+    }
+
+    .bench {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .bench-slot {
+      border: 2px dashed #52627c;
+      border-radius: 10px;
+      min-height: 52px;
+      background: #101b2b;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #aebbd2;
+      font: 800 12px/1 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .bench-slot b {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #2b3446;
+      display: grid;
+      place-items: center;
+      color: #f7f9ff;
+      font-size: 10px;
+    }
+
+    .pick-tray {
+      display: grid;
+      gap: 9px;
+    }
+
+    .draft-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .draft-actions.has-return {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .chem-panel {
+      border: 1px solid rgba(84, 216, 255, .12);
+      border-radius: 10px;
+      background: rgba(16, 27, 43, .92);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .chem-panel h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .chem-meter {
+      height: 8px;
+      border-radius: 999px;
+      background: #1d2a3c;
+      overflow: hidden;
+    }
+
+    .chem-meter span {
+      display: block;
+      height: 100%;
+      width: var(--chem-width, 0%);
+      background: #19df72;
+    }
+
+    .chem-breakdown {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      color: #c9d5e8;
+      font: 800 10px/1.25 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .chem-breakdown div {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 8px;
+      padding: 7px;
+      background: rgba(255,255,255,.04);
+    }
+
+    .chem-breakdown b {
+      display: block;
+      color: #39e58d;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .pick-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .player-card {
+      min-height: 154px;
+      border: 1px solid rgba(255, 212, 59, .45);
+      border-radius: 10px;
+      padding: 8px;
+      background:
+        linear-gradient(135deg, rgba(255, 235, 150, .22), rgba(116, 73, 18, .42)),
+        #21180d;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 6px;
+      place-items: center;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .player-card .fc-card {
+      width: min(92px, 100%);
+      height: 128px;
+    }
+
+    .player-card .pick-meta {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      color: #d7e3ff;
+      font: 900 10px/1.15 Arial, sans-serif;
+    }
+
+    .player-card.disabled {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .player-card.selected {
+      outline: 2px solid var(--lime);
+      box-shadow: 0 0 20px rgba(149, 236, 67, .25);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .rating {
+      color: var(--gold);
+      font-size: 25px;
+      line-height: .9;
+    }
+
+    .pos {
+      color: #fff7ca;
+      font: 900 11px/1 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .chem-dot {
+      border-radius: 999px;
+      padding: 3px 7px;
+      background: rgba(255, 255, 255, .09);
+      color: #d7e3ff;
+      font: 900 10px/1 Arial, sans-serif;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .face {
+      width: 48px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      margin: 0 auto;
+      background:
+        linear-gradient(180deg, #f4c7a1 0 48%, #26221c 49% 57%, #d7a87d 58%),
+        #d7a87d;
+      border: 2px solid rgba(255, 255, 255, .22);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .face:before,
+    .face:after {
+      content: "";
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #1d2229;
+      top: 23px;
+    }
+
+    .face:before { left: 15px; }
+    .face:after { right: 15px; }
+
+    .face.photo {
+      background-position: center;
+      background-size: cover;
+    }
+
+    .face.photo:before,
+    .face.photo:after {
+      display: none;
+    }
+
+    .player-name {
+      font-size: 13px;
+      line-height: 1.05;
+      min-height: 28px;
+    }
+
+    .meta {
+      color: #d8e2f4;
+      font: 800 10px/1.2 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .primary,
+    .secondary {
+      border: 0;
+      border-radius: 10px;
+      min-height: 52px;
+      padding: 12px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: linear-gradient(180deg, #b8ff54, #69c82d);
+      color: #07100a;
+      box-shadow: 0 10px 24px rgba(149, 236, 67, .25);
+    }
+
+    .secondary {
+      background: #17243a;
+      color: #e8efff;
+    }
+
+    .primary:disabled,
+    .secondary:disabled {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .helper {
+      color: #6ea8c7;
+      text-align: center;
+      font: 800 12px/1.3 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .run-track {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 4px;
+    }
+
+    .run-dot {
+      height: 8px;
+      border-radius: 2px;
+      background: #27313d;
+    }
+
+    .run-dot.win { background: var(--green); }
+    .run-dot.loss { background: var(--red); }
+
+    .match-hero {
+      min-height: 220px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(84,216,255,.24), transparent 28%),
+        linear-gradient(135deg, rgba(255,212,59,.18), transparent 35%),
+        linear-gradient(180deg, #0f1826, #09101a);
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .ball {
+      width: 18px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      left: var(--ball-x, 50%);
+      top: var(--ball-y, 50%);
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 18px rgba(255,255,255,.7);
+      transition: left .45s ease, top .45s ease;
+    }
+
+    .scoreline {
+      position: absolute;
+      inset: 12px auto auto 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 21px;
+    }
+
+    .match-clock {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      border-radius: 999px;
+      background: rgba(84,216,255,.13);
+      border: 1px solid rgba(84,216,255,.25);
+      padding: 8px 12px;
+      color: var(--cyan);
+      font-size: 18px;
+    }
+
+    .match-phase {
+      color: var(--gold);
+      font-size: 35px;
+      line-height: 1;
+    }
+
+    .match-sub {
+      margin-top: 6px;
+      color: #aebbd2;
+      font: 800 12px/1.3 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .panel {
+      background: rgba(16, 27, 43, .94);
+      border: 1px solid rgba(84, 216, 255, .12);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .badge {
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      font: 900 10px/1 Arial, sans-serif;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .event-feed {
+      display: grid;
+      gap: 7px;
+      max-height: 300px;
+      overflow: auto;
+    }
+
+    .event {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding-bottom: 7px;
+    }
+
+    .minute {
+      color: var(--cyan);
+      font-size: 13px;
+    }
+
+    .event p {
+      margin: 0;
+      color: #dbe5ef;
+      font: 700 12px/1.35 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .result {
+      text-align: center;
+      display: grid;
+      gap: 8px;
+    }
+
+    .result strong { font-size: 34px; }
+    .result p {
+      margin: 0;
+      color: #aebbd2;
+      font: 800 13px/1.35 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .reward-panel {
+      display: grid;
+      gap: 10px;
+      border: 1px solid rgba(255, 212, 59, .22);
+      border-radius: 12px;
+      padding: 12px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 212, 59, .18), transparent 34%),
+        linear-gradient(180deg, rgba(16, 27, 43, .96), rgba(8, 15, 25, .98));
+      overflow: hidden;
+    }
+
+    .reward-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #eef5ff;
+      font: 900 12px/1.1 Arial, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .reward-head span {
+      color: var(--gold);
+      font-size: 11px;
+    }
+
+    .reward-stage {
+      position: relative;
+      min-height: 176px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background:
+        linear-gradient(110deg, rgba(54, 163, 255, .08), rgba(149, 236, 67, .08)),
+        rgba(4, 9, 16, .72);
+      border: 1px solid rgba(84, 216, 255, .12);
+      overflow: hidden;
+    }
+
+    .reward-pack {
+      position: relative;
+      width: min(170px, 42vw);
+      aspect-ratio: 5 / 7;
+      border: 0;
+      border-radius: 16px;
+      color: #08101a;
+      background:
+        linear-gradient(135deg, #ffe36c 0%, #29e0ff 40%, #7cff42 72%, #111827 100%);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .45), 0 0 28px rgba(255, 212, 59, .28);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      overflow: hidden;
+      transition: transform .2s ease, filter .2s ease;
+    }
+
+    .reward-pack:before {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: linear-gradient(120deg, transparent 34%, rgba(255,255,255,.62) 48%, transparent 60%);
+      transform: translateX(-55%) rotate(12deg);
+      animation: rewardShine 2.2s ease-in-out infinite;
+    }
+
+    .reward-pack:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .reward-pack b {
+      position: relative;
+      display: block;
+      font-size: 34px;
+      line-height: .9;
+    }
+
+    .reward-pack span {
+      position: relative;
+      display: block;
+      margin-top: 8px;
+      color: #07101c;
+      font: 900 12px/1.1 Arial, sans-serif;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .reward-panel.opening .reward-pack {
+      animation: packOpen .9s ease both;
+      pointer-events: none;
+    }
+
+    .reward-panel.opened .reward-pack {
+      display: none;
+    }
+
+    .reward-beam {
+      position: absolute;
+      width: 160%;
+      height: 160%;
+      opacity: 0;
+      background:
+        conic-gradient(from 0deg, transparent, rgba(255, 212, 59, .42), transparent, rgba(84, 216, 255, .36), transparent);
+      filter: blur(8px);
+      animation: spinBeam 2.4s linear infinite;
+    }
+
+    .reward-panel.opening .reward-beam,
+    .reward-panel.opened .reward-beam {
+      opacity: .75;
+    }
+
+    .reward-cards {
+      position: relative;
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+      max-width: 390px;
+      z-index: 1;
+    }
+
+    .reward-panel.opened .reward-cards {
+      display: grid;
+    }
+
+    .reward-card {
+      display: grid;
+      justify-items: center;
+      gap: 5px;
+      padding: 8px 4px;
+      border-radius: 10px;
+      background: rgba(7, 13, 23, .7);
+      border: 1px solid rgba(255, 255, 255, .08);
+      animation: cardPop .28s ease both;
+    }
+
+    .reward-card:nth-child(2) { animation-delay: .08s; }
+    .reward-card:nth-child(3) { animation-delay: .16s; }
+    .reward-card:nth-child(4) { animation-delay: .24s; }
+    .reward-card:nth-child(5) { animation-delay: .32s; }
+    .reward-card:nth-child(6) { animation-delay: .4s; }
+
+    .reward-card .fc-card {
+      width: min(76px, 100%);
+      height: 106px;
+    }
+
+    .reward-card b {
+      max-width: 100%;
+      color: #edf4ff;
+      font: 900 10px/1.1 Arial, sans-serif;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .reward-status {
+      color: #dce7ff;
+      font: 900 12px/1.35 Arial, sans-serif;
+      letter-spacing: 0;
+      text-align: center;
+    }
+
+    .reward-status b {
+      color: var(--lime);
+    }
+
+    .season-summary {
+      display: grid;
+      gap: 14px;
+    }
+
+    .season-hero {
+      display: grid;
+      gap: 6px;
+      text-align: center;
+      padding: 8px 4px 2px;
+    }
+
+    .season-hero small {
+      color: #92a3c3;
+      font: 900 11px/1 Arial, sans-serif;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+
+    .season-score {
+      color: var(--gold);
+      font-size: 66px;
+      line-height: .86;
+      text-shadow: 0 0 22px rgba(255, 212, 59, .35);
+    }
+
+    .season-title {
+      color: #eef4ff;
+      font-size: clamp(30px, 8vw, 44px);
+      line-height: .95;
+      text-transform: uppercase;
+    }
+
+    .season-sub {
+      margin: 0;
+      color: #9eacc9;
+      font: 900 13px/1.45 Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .season-label {
+      color: #9eacc9;
+      font: 900 11px/1 Arial, sans-serif;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+
+    .summary-pitch {
+      position: relative;
+      width: min(330px, 100%);
+      aspect-ratio: 9 / 12;
+      justify-self: center;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(92, 214, 93, .4);
+      background:
+        linear-gradient(rgba(9, 28, 17, .15), rgba(9, 28, 17, .22)),
+        repeating-linear-gradient(0deg, #0d552b 0 44px, #0a3f21 44px 88px);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+    }
+
+    .summary-pitch:before {
+      content: "";
+      position: absolute;
+      inset: 28px 24px;
+      border: 2px solid rgba(255,255,255,.22);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+
+    .summary-pitch:after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 76px;
+      height: 76px;
+      border: 2px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .summary-player {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      width: 58px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      justify-items: center;
+      gap: 3px;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .summary-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #07101c;
+      background: var(--role);
+      border: 2px solid rgba(255,255,255,.75);
+      font: 900 9px/1 Arial, sans-serif;
+      box-shadow: 0 3px 10px rgba(0,0,0,.34);
+    }
+
+    .summary-player .fc-card {
+      width: 54px;
+      height: 74px;
+      filter: drop-shadow(0 5px 8px rgba(0,0,0,.45));
+    }
+
+    .summary-player span {
+      max-width: 70px;
+      color: #f1f6ff;
+      font: 900 9px/1.05 Arial, sans-serif;
+      text-shadow: 0 2px 4px rgba(0,0,0,.8);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bench-summary {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .bench-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 8px;
+      border: 1px solid rgba(84, 216, 255, .18);
+      background: #101b2b;
+      padding: 6px 8px;
+      color: #dbe7ff;
+      font: 900 10px/1 Arial, sans-serif;
+    }
+
+    .bench-chip i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--role);
+    }
+
+    .season-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .season-stat {
+      min-height: 58px;
+      border-radius: 10px;
+      border: 1px solid rgba(84, 216, 255, .15);
+      background: #101b2b;
+      padding: 10px;
+      display: grid;
+      align-content: center;
+      gap: 5px;
+    }
+
+    .season-stat small {
+      color: #8fa0be;
+      font: 900 10px/1 Arial, sans-serif;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .season-stat b {
+      color: #eef5ff;
+      font-size: 21px;
+      line-height: 1;
+    }
+
+    .season-stat.highlight {
+      border-left: 4px solid var(--gold);
+    }
+
+    .season-stat.highlight b {
+      color: var(--gold);
+    }
+
+    .player-stats {
+      border: 1px solid rgba(84, 216, 255, .14);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(8, 15, 25, .72);
+    }
+
+    .player-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 32px 32px 48px;
+      gap: 8px;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      color: #dfe9ff;
+      font: 900 12px/1.15 Arial, sans-serif;
+    }
+
+    .player-row:last-child {
+      border-bottom: 0;
+    }
+
+    .player-row.header {
+      min-height: 30px;
+      color: #8fa0be;
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      background: rgba(255,255,255,.03);
+    }
+
+    .player-name-cell {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 7px;
+    }
+
+    .role-bullet {
+      flex: 0 0 auto;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--role);
+    }
+
+    .player-name-cell span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .summary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding-bottom: 8px;
+    }
+
+    @keyframes rewardShine {
+      0%, 44% { transform: translateX(-70%) rotate(12deg); }
+      70%, 100% { transform: translateX(70%) rotate(12deg); }
+    }
+
+    @keyframes packOpen {
+      0% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+      45% { transform: scale(1.12) rotate(-3deg); filter: brightness(1.5); }
+      100% { transform: scale(.72) rotate(4deg); opacity: 0; filter: brightness(2); }
+    }
+
+    @keyframes spinBeam {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes cardPop {
+      from { transform: translateY(14px) scale(.9); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    .stream-chat {
+      min-height: 330px;
+      max-height: 48vh;
+      overflow: auto;
+      display: grid;
+      align-content: start;
+      gap: 6px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(84, 216, 255, .12);
+      background:
+        linear-gradient(180deg, rgba(16, 27, 43, .94), rgba(8, 15, 25, .96)),
+        #08101a;
+    }
+
+    .chat-line {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 7px;
+      align-items: baseline;
+      font: 800 12px/1.25 Arial, sans-serif;
+      color: #dce7ff;
+      padding: 5px 6px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, .025);
+    }
+
+    .chat-line b {
+      color: var(--cyan);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .chat-line.salt b { color: #ff5f7d; }
+    .chat-line.support b { color: #9cff45; }
+    .chat-line.meme b { color: var(--gold); }
+
+    .excuse-pop {
+      position: fixed;
+      left: 50%;
+      bottom: max(18px, env(safe-area-inset-bottom));
+      width: min(calc(100% - 28px), 460px);
+      transform: translate(-50%, 140%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 20;
+      transition: transform .22s ease, opacity .22s ease;
+    }
+
+    .excuse-pop.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .excuse-box {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      background: rgba(12, 16, 21, .96);
+      border: 1px solid rgba(255, 77, 92, .42);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, .42);
+    }
+
+    .excuse-box span {
+      color: var(--red);
+      font: 900 10px/1 Arial, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .excuse-box p {
+      margin: 3px 0 0;
+      font-size: 17px;
+      line-height: 1.15;
+    }
+
+    .excuse-close {
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 8px;
+      background: #252e39;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 390px) {
+      .setup-brand strong { font-size: 62px; }
+      .pick-cards { grid-template-columns: 1fr; }
+      .player-card {
+        min-height: 112px;
+        grid-template-columns: 56px 1fr;
+        grid-template-rows: auto auto auto;
+        align-items: center;
+      }
+      .card-head { grid-column: 1; }
+      .face { grid-column: 1; grid-row: 2 / span 2; }
+      .player-name, .meta { grid-column: 2; }
+      .slot { width: 54px; }
+      .slot-card,
+      .fc-card { width: 52px; height: 70px; }
+      .fc-rating { font-size: 13px; left: 5px; top: 6px; }
+      .fc-pos { font-size: 7px; left: 5px; top: 19px; }
+      .fc-photo { width: 39px; height: 39px; top: 13px; }
+      .fc-name { font-size: 7px; bottom: 16px; left: 4px; right: 4px; }
+      .fc-stats { font-size: 5px; bottom: 5px; left: 3px; right: 3px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="screen setup-screen active" id="formationScreen">
+      <div class="setup-brand">
+        <strong>15<span>-0</span></strong>
+        <small>WEEKEND LEAGUE DRAFT</small>
+      </div>
+      <div class="step-kicker">ADIM 1/3</div>
+      <h1 class="setup-title">FORMASYON SEÇ</h1>
+      <div class="option-list" id="formationOptions"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section class="screen setup-screen" id="tacticScreen">
+      <div class="setup-brand">
+        <strong>15<span>-0</span></strong>
+        <small>WEEKEND LEAGUE DRAFT</small>
+      </div>
+      <div class="step-kicker">ADIM 2/3</div>
+      <h1 class="setup-title">TAKTİK SEÇ</h1>
+      <div class="option-list" id="tacticOptions"></div>
+      <div class="legend" id="legendTactic"></div>
+    </section>
+
+    <section class="screen" id="draftScreen">
+      <header class="topbar">
+        <div>
+          <div class="mini-brand">15 <span>- 0</span></div>
+          <div class="sub-brand">WEEKEND LEAGUE DRAFT</div>
+        </div>
+        <div></div>
+        <div class="icon-row">
+          <button class="icon-btn" id="resetBtn" aria-label="Reset">↻</button>
+          <button class="icon-btn" aria-label="Info">?</button>
+        </div>
+      </header>
+
+      <div class="info-grid">
+        <div class="info-card"><small>FORMASYON</small><b id="formationLabel">-</b></div>
+        <div class="info-card"><small>SEÇİM</small><b id="pickLabel">0/13</b></div>
+        <div class="info-card"><small>KİMYA</small><b id="chemLabel">0</b></div>
+      </div>
+
+      <div class="manager-strip">
+        <small>TEKNİK DİREKTÖR</small>
+        <b id="managerLabel">Kadrodan sonra</b>
+      </div>
+
+      <section class="draft-board" id="draftBoard"></section>
+      <section class="bench" id="bench"></section>
+      <section class="chem-panel">
+        <div class="panel-title">
+          <h2>Kimya</h2>
+          <span class="badge" id="chemTotalLabel">0/33</span>
+        </div>
+        <div class="chem-meter"><span id="chemMeter"></span></div>
+        <div class="chem-breakdown" id="chemBreakdown"></div>
+      </section>
+
+      <section class="pick-tray">
+        <div class="pick-cards" id="pickCards"></div>
+        <div class="draft-actions">
+          <button class="primary" id="rollBtn">ÇEVİR</button>
+          <button class="secondary hidden" id="returnToWL">WL'ye Dön</button>
+        </div>
+        <p class="helper" id="draftHint">Çevir'e bas, sıradaki pozisyon için 3 kart gelsin.</p>
+      </section>
+    </section>
+
+    <section class="screen setup-screen" id="managerScreen">
+      <div class="setup-brand">
+        <strong>15<span>-0</span></strong>
+        <small>WEEKEND LEAGUE DRAFT</small>
+      </div>
+      <div class="step-kicker">ADIM 3/3</div>
+      <h1 class="setup-title">TEKNİK DİREKTÖR SEÇ</h1>
+      <div class="option-list" id="managerOptions"></div>
+      <div class="legend" id="legendManager"></div>
+    </section>
+
+    <section class="screen" id="boostScreen">
+      <div class="panel">
+        <div class="panel-title">
+          <h2>WL Başlıyor</h2>
+        </div>
+        <p class="helper" id="readyText"></p>
+      </div>
+      <div class="info-grid">
+        <button class="secondary" id="readyDraft">Draft</button>
+        <button class="primary" id="startRun">MAÇA BAŞLA</button>
+        <button class="secondary" id="readyFinish">WL'yi Bitir</button>
+      </div>
+    </section>
+
+    <section class="screen" id="matchScreen">
+      <div class="run-track" id="runTrack" aria-label="15 match tracker"></div>
+      <div class="match-hero" id="matchPitch">
+        <div class="match-clock" id="matchClock">0'</div>
+        <div class="scoreline"><span id="homeScore">0</span> - <span id="awayScore">0</span></div>
+        <div>
+          <div class="match-phase" id="matchPhase">KICK OFF</div>
+          <div class="match-sub" id="matchSub"></div>
+        </div>
+        <div class="ball"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">
+          <h2>Canlı olaylar</h2>
+          <span class="badge" id="momentum">Momentum 50</span>
+        </div>
+        <div class="event-feed" id="eventFeed"></div>
+      </div>
+      <div class="info-grid">
+        <button class="secondary" id="quickSim">Hızlı sim</button>
+        <button class="primary" id="nextEvent">Duraklat</button>
+        <button class="secondary" id="finishRun">WL'yi Bitir</button>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen">
+      <div class="run-track" id="resultTrack" aria-label="15 match tracker"></div>
+      <div class="panel result" id="matchResultPanel">
+        <p id="resultMeta"></p>
+        <strong id="resultTitle"></strong>
+        <p id="resultText"></p>
+      </div>
+      <div class="info-grid result-actions" id="resultActions">
+        <button class="secondary" id="finishRunResult">WL'yi Bitir</button>
+        <button class="primary" id="nextMatch">Sonraki maç</button>
+      </div>
+      <section class="season-summary hidden" id="seasonSummary" aria-label="Weekend League sonucu">
+        <div class="season-hero">
+          <small>Weekend League Sonucu</small>
+          <strong class="season-score" id="seasonScore"></strong>
+          <strong class="season-title" id="seasonTitle"></strong>
+          <p class="season-sub" id="seasonSub"></p>
+        </div>
+        <strong class="season-label">Kadromuz</strong>
+        <div class="summary-pitch" id="summaryPitch"></div>
+        <div class="bench-summary" id="summaryBench"></div>
+        <strong class="season-label">WL boyunca</strong>
+        <div class="season-grid" id="seasonStats"></div>
+        <div class="player-stats" id="playerStats"></div>
+        <section class="reward-panel hidden" id="rewardPanel" aria-label="WL ödül paketi">
+          <div class="reward-head">
+            <strong>WL ödülleri</strong>
+            <span id="rewardTier"></span>
+          </div>
+          <div class="reward-stage">
+            <div class="reward-beam" aria-hidden="true"></div>
+            <button class="reward-pack" id="openRewards" type="button">
+              <div>
+                <b>15-0</b>
+                <span>Paketi aç</span>
+              </div>
+            </button>
+            <div class="reward-cards" id="rewardCards"></div>
+          </div>
+          <p class="reward-status" id="rewardStatus"></p>
+        </section>
+        <div class="summary-actions">
+          <button class="secondary" id="shareResult">Paylaş</button>
+          <button class="primary" id="replayRun">Tekrar oyna</button>
+        </div>
+      </section>
+      <section class="stream-chat" id="resultChat" aria-label="Yayın sohbeti"></section>
+    </section>
+  </main>
+
+  <aside class="excuse-pop" id="excusePop" aria-live="polite">
+    <div class="excuse-box">
+      <div>
+        <span id="excuseLabel">Bahane kamerası</span>
+        <p id="excuseText"></p>
+      </div>
+      <button class="excuse-close" id="excuseClose" aria-label="Bahaneyi kapat">x</button>
+    </div>
+  </aside>
+
+  <script>
+    const saveKey = "fifteen-zero-prototype-v2";
+    const roleColors = {
+      SF: "#ff4d5c", ST: "#ff4d5c", SLK: "#36a3ff", SGK: "#36a3ff", LW: "#36a3ff", RW: "#36a3ff",
+      LM: "#36a3ff", RM: "#36a3ff", MOO: "#33d17a", MO: "#33d17a", MDO: "#33d17a",
+      SLB: "#ffd85a", SGB: "#ffd85a", LB: "#ffd85a", RB: "#ffd85a", STP: "#ff941f",
+      CB: "#ff941f", KL: "#a8ec4a", GK: "#a8ec4a", BEN: "#52627c"
+    };
+
+    const formationPool = [
+      "3-1-4-2", "3-4-1-2", "3-4-2-1", "3-5-2", "3-4-3", "4-1-2-1-2",
+      "4-1-2-1-2(2)", "4-1-3-2", "4-1-4-1", "4-2-1-3", "4-2-2-2",
+      "4-2-3-1", "4-2-3-1(2)", "4-2-4", "4-3-1-2", "4-3-2-1",
+      "4-3-3", "4-3-3(2)", "4-3-3(3)", "4-3-3(4)", "4-4-1-1(2)",
+      "4-4-2", "4-4-2(2)", "4-5-1", "4-5-1(2)", "5-2-1-2", "5-2-3",
+      "5-3-2", "5-4-1"
+    ];
+
+    const tacticPool = [
+      { id: "bekler-bindir", name: "BEKLER BİNDİR", text: "Kanatları şişir, rakip beki yorma", mod: 4 },
+      { id: "90-derinlik", name: "90 DERİNLİK", text: "Önde boğ, arkaya atılanlara dua et", mod: 5 },
+      { id: "geriye-yaslan", name: "GERİYE YASLAN", text: "Kontra ara, tek pozisyonu bekle", mod: 2 },
+      { id: "tiki-taka", name: "TIKI TAKA", text: "Topa sahip ol, sabrı bitir", mod: 3 },
+      { id: "kanat-baskisi", name: "KANAT BASKISI", text: "LW/RW sürekli çizgide tehdit", mod: 4 },
+      { id: "gegenpress", name: "SÜREKLİ PRES", text: "Topu kaybedince hemen ısır", mod: 5 },
+      { id: "cutback", name: "CUTBACK PLANI", text: "Son çizgiye in, geriye çıkar", mod: 4 },
+      { id: "uzaktan-dene", name: "TRIVELA SERBEST", text: "Boşluğu gördüğün an vur", mod: 3 }
+    ];
+
+    const managers = [
+      { id: "tekke", name: "Fatih Tekke", nation: "TR", league: "Süper Lig", style: "Direkt oyun", mod: 4 },
+      { id: "sahin", name: "Nuri Şahin", nation: "TR", league: "Bundesliga", style: "Topa sahip olma", mod: 5 },
+      { id: "daum", name: "Christoph Daum", nation: "DE", league: "Süper Lig", style: "Disiplin", mod: 4 },
+      { id: "ismael", name: "Valerien Ismael", nation: "FR", league: "Championship", style: "Pres", mod: 3 },
+      { id: "montella", name: "Vincenzo Montella", nation: "IT", league: "Süper Lig", style: "Akışkan hücum", mod: 5 },
+      { id: "jesus", name: "Jorge Jesus", nation: "PT", league: "Liga Portugal", style: "Ön alan", mod: 4 },
+      { id: "mourinho", name: "Jose Mourinho", nation: "PT", league: "Süper Lig", style: "Blok savunma", mod: 5 },
+      { id: "guardiola", name: "Pep Guardiola", nation: "ES", league: "Premier League", style: "Pozisyon oyunu", mod: 6 },
+      { id: "ancelotti", name: "Carlo Ancelotti", nation: "IT", league: "LaLiga", style: "Soğukkanlılık", mod: 6 },
+      { id: "klopp", name: "Jurgen Klopp", nation: "DE", league: "Bundesliga", style: "Gegenpress", mod: 5 },
+      { id: "arteta", name: "Mikel Arteta", nation: "ES", league: "Premier League", style: "Set hücumu", mod: 5 },
+      { id: "xabi", name: "Xabi Alonso", nation: "ES", league: "Bundesliga", style: "Geçiş oyunu", mod: 6 },
+      { id: "inzaghi", name: "Simone Inzaghi", nation: "IT", league: "Serie A", style: "Üçlü savunma", mod: 5 },
+      { id: "enrique", name: "Luis Enrique", nation: "ES", league: "Ligue 1", style: "Baskılı pas", mod: 5 },
+      { id: "terim", name: "Fatih Terim", nation: "TR", league: "Süper Lig", style: "Gaz ve pres", mod: 5 },
+      { id: "gunes", name: "Şenol Güneş", nation: "TR", league: "Süper Lig", style: "Denge", mod: 4 },
+      { id: "buruk", name: "Okan Buruk", nation: "TR", league: "Süper Lig", style: "Ön alan baskısı", mod: 5 },
+      { id: "kartal", name: "İsmail Kartal", nation: "TR", league: "Süper Lig", style: "Bek bindir", mod: 4 },
+      { id: "emre", name: "Emre Belözoğlu", nation: "TR", league: "Süper Lig", style: "Tempo", mod: 4 },
+      { id: "pirlo", name: "Andrea Pirlo", nation: "IT", league: "Serie A", style: "Pas ritmi", mod: 4 },
+      { id: "zidane", name: "Zinedine Zidane", nation: "FR", league: "LaLiga", style: "Büyük maç", mod: 6 },
+      { id: "tuchel", name: "Thomas Tuchel", nation: "DE", league: "Bundesliga", style: "Esnek plan", mod: 5 },
+      { id: "conte", name: "Antonio Conte", nation: "IT", league: "Serie A", style: "Kanat bekleri", mod: 5 },
+      { id: "dezerbi", name: "Roberto De Zerbi", nation: "IT", league: "Ligue 1", style: "Riskli çıkış", mod: 4 }
+
+      ,{ id: "simeone", name: "Diego Simeone", nation: "AR", league: "LaLiga", style: "Sert blok", mod: 5 }
+      ,{ id: "flick", name: "Hansi Flick", nation: "DE", league: "LaLiga", style: "Yüksek hat", mod: 5 }
+      ,{ id: "slot", name: "Arne Slot", nation: "NL", league: "Premier League", style: "Ritim presi", mod: 5 }
+      ,{ id: "amorim", name: "Ruben Amorim", nation: "PT", league: "Premier League", style: "Üçlü çıkış", mod: 4 }
+      ,{ id: "nagelsmann", name: "Julian Nagelsmann", nation: "DE", league: "Bundesliga", style: "Esnek pres", mod: 5 }
+      ,{ id: "spalletti", name: "Luciano Spalletti", nation: "IT", league: "Serie A", style: "Merkez oyun", mod: 5 }
+      ,{ id: "allegri", name: "Massimiliano Allegri", nation: "IT", league: "Serie A", style: "Skor koru", mod: 4 }
+      ,{ id: "sarri", name: "Maurizio Sarri", nation: "IT", league: "Serie A", style: "Pas otomatiği", mod: 4 }
+      ,{ id: "pochettino", name: "Mauricio Pochettino", nation: "AR", league: "MLS", style: "Tempo baskısı", mod: 4 }
+      ,{ id: "scaloni", name: "Lionel Scaloni", nation: "AR", league: "LaLiga", style: "Turnuva modu", mod: 5 }
+      ,{ id: "deschamps", name: "Didier Deschamps", nation: "FR", league: "Ligue 1", style: "Net denge", mod: 5 }
+      ,{ id: "southgate", name: "Gareth Southgate", nation: "EN", league: "Premier League", style: "Güvenli plan", mod: 3 }
+      ,{ id: "mancini", name: "Roberto Mancini", nation: "IT", league: "Serie A", style: "Topa sahip ol", mod: 4 }
+      ,{ id: "setien", name: "Quique Setien", nation: "ES", league: "LaLiga", style: "Pas sabrı", mod: 3 }
+      ,{ id: "van-gaal", name: "Louis van Gaal", nation: "NL", league: "Eredivisie", style: "Sistem disiplini", mod: 4 }
+      ,{ id: "ten-hag", name: "Erik ten Hag", nation: "NL", league: "Premier League", style: "Geçiş riski", mod: 4 }
+      ,{ id: "galtier", name: "Christophe Galtier", nation: "FR", league: "Ligue 1", style: "Kompakt blok", mod: 3 }
+      ,{ id: "pereira", name: "Vitor Pereira", nation: "PT", league: "Süper Lig", style: "Üçlü savunma", mod: 4 }
+      ,{ id: "avci", name: "Abdullah Avci", nation: "TR", league: "Süper Lig", style: "Kontrollü oyun", mod: 4 }
+      ,{ id: "yalcin", name: "Sergen Yalcin", nation: "TR", league: "Süper Lig", style: "Anlık reaksiyon", mod: 4 }
+      ,{ id: "calimbay", name: "Riza Calimbay", nation: "TR", league: "Süper Lig", style: "Mücadele", mod: 3 }
+      ,{ id: "kocaman", name: "Aykut Kocaman", nation: "TR", league: "Süper Lig", style: "Düşük risk", mod: 3 }
+      ,{ id: "palut", name: "Ilhan Palut", nation: "TR", league: "Süper Lig", style: "Geçiş temposu", mod: 4 }
+      ,{ id: "yakin", name: "Murat Yakin", nation: "CH", league: "Bundesliga", style: "Turnuva kilidi", mod: 4 }
+    ];
+
+    let players = [
+      { id: "miro-vela", name: "Miro Vela", pos: "ST", role: "FRV", nation: "ES", league: "LaLiga", ovr: 91, pac: 90, sho: 94, pas: 82, dri: 91, def: 39, phy: 77, clutch: 92 },
+      { id: "arda-nova", name: "Arda Nova", pos: "CAM", role: "OS", nation: "TR", league: "LaLiga", ovr: 89, pac: 83, sho: 86, pas: 93, dri: 94, def: 58, phy: 68, clutch: 88 },
+      { id: "leon-krall", name: "Leon Krall", pos: "RW", role: "KNT", nation: "DE", league: "Bundesliga", ovr: 88, pac: 95, sho: 84, pas: 80, dri: 92, def: 44, phy: 70, clutch: 81 },
+      { id: "deniz-roque", name: "Deniz Roque", pos: "CM", role: "OS", nation: "TR", league: "Süper Lig", ovr: 87, pac: 78, sho: 80, pas: 91, dri: 87, def: 82, phy: 80, clutch: 76 },
+      { id: "batu-shield", name: "Batu Shield", pos: "CB", role: "STP", nation: "TR", league: "Süper Lig", ovr: 86, pac: 82, sho: 45, pas: 76, dri: 70, def: 91, phy: 90, clutch: 73 },
+      { id: "rafa-glitch", name: "Rafa Glitch", pos: "LW", role: "KNT", nation: "BR", league: "Premier", ovr: 85, pac: 94, sho: 83, pas: 78, dri: 90, def: 36, phy: 64, clutch: 95 },
+      { id: "kaan-orbit", name: "Kaan Orbit", pos: "RB", role: "BEK", nation: "TR", league: "Bundesliga", ovr: 84, pac: 89, sho: 61, pas: 79, dri: 81, def: 84, phy: 78, clutch: 70 },
+      { id: "noah-frost", name: "Noah Frost", pos: "GK", role: "KL", nation: "DE", league: "Bundesliga", ovr: 90, pac: 55, sho: 20, pas: 71, dri: 58, def: 92, phy: 86, clutch: 90 },
+      { id: "ivo-cutback", name: "Ivo Cutback", pos: "ST", role: "FRV", nation: "PT", league: "Liga Portugal", ovr: 84, pac: 88, sho: 87, pas: 72, dri: 86, def: 33, phy: 75, clutch: 84 },
+      { id: "emir-tempo", name: "Emir Tempo", pos: "CDM", role: "OS", nation: "TR", league: "Süper Lig", ovr: 86, pac: 74, sho: 68, pas: 85, dri: 82, def: 88, phy: 87, clutch: 79 },
+      { id: "luca-spam", name: "Luca Spam", pos: "CM", role: "OS", nation: "IT", league: "Serie A", ovr: 88, pac: 76, sho: 82, pas: 92, dri: 88, def: 79, phy: 76, clutch: 86 },
+      { id: "enzo-chain", name: "Enzo Chain", pos: "LB", role: "BEK", nation: "FR", league: "Premier", ovr: 87, pac: 91, sho: 58, pas: 82, dri: 84, def: 85, phy: 82, clutch: 78 },
+      { id: "marco-zen", name: "Marco Zen", pos: "CB", role: "STP", nation: "IT", league: "Serie A", ovr: 89, pac: 80, sho: 42, pas: 77, dri: 73, def: 93, phy: 91, clutch: 82 },
+      { id: "jayden-press", name: "Jayden Press", pos: "RM", role: "KNT", nation: "EN", league: "Premier", ovr: 86, pac: 92, sho: 81, pas: 83, dri: 87, def: 59, phy: 73, clutch: 80 },
+      { id: "samir-rage", name: "Samir Rage", pos: "ST", role: "FRV", nation: "FR", league: "Ligue 1", ovr: 90, pac: 92, sho: 91, pas: 76, dri: 89, def: 35, phy: 83, clutch: 89 },
+      { id: "okan-line", name: "Okan Line", pos: "GK", role: "KL", nation: "TR", league: "Süper Lig", ovr: 83, pac: 49, sho: 18, pas: 68, dri: 54, def: 84, phy: 81, clutch: 79 },
+      { id: "thiago-lock", name: "Thiago Lock", pos: "CDM", role: "OS", nation: "BR", league: "LaLiga", ovr: 88, pac: 75, sho: 71, pas: 86, dri: 85, def: 90, phy: 86, clutch: 83 },
+      { id: "mert-cross", name: "Mert Cross", pos: "LM", role: "KNT", nation: "TR", league: "Süper Lig", ovr: 82, pac: 87, sho: 77, pas: 82, dri: 84, def: 50, phy: 66, clutch: 74 },
+      { id: "diego-fake", name: "Diego Fake", pos: "CAM", role: "OS", nation: "AR", league: "MLS", ovr: 86, pac: 81, sho: 84, pas: 88, dri: 91, def: 41, phy: 61, clutch: 91 },
+      { id: "harun-tackle", name: "Harun Tackle", pos: "CB", role: "STP", nation: "TR", league: "Süper Lig", ovr: 84, pac: 77, sho: 39, pas: 70, dri: 68, def: 88, phy: 92, clutch: 77 }
+      ,{ id: "bruno-wall", name: "Bruno Wall", pos: "CB", role: "STP", nation: "PT", league: "Premier", ovr: 85, pac: 79, sho: 38, pas: 72, dri: 69, def: 89, phy: 88, clutch: 75 }
+      ,{ id: "yigit-slide", name: "Yiğit Slide", pos: "LB", role: "BEK", nation: "TR", league: "Süper Lig", ovr: 83, pac: 88, sho: 55, pas: 78, dri: 80, def: 82, phy: 76, clutch: 72 }
+      ,{ id: "pablo-overlap", name: "Pablo Overlap", pos: "RB", role: "BEK", nation: "ES", league: "LaLiga", ovr: 85, pac: 90, sho: 60, pas: 82, dri: 84, def: 83, phy: 77, clutch: 76 }
+      ,{ id: "toni-anchor", name: "Toni Anchor", pos: "CDM", role: "OS", nation: "DE", league: "Bundesliga", ovr: 85, pac: 70, sho: 66, pas: 84, dri: 80, def: 87, phy: 85, clutch: 78 }
+      ,{ id: "selim-balance", name: "Selim Balance", pos: "CM", role: "OS", nation: "TR", league: "Süper Lig", ovr: 84, pac: 77, sho: 78, pas: 86, dri: 83, def: 77, phy: 79, clutch: 80 }
+      ,{ id: "mateo-pocket", name: "Mateo Pocket", pos: "CAM", role: "OS", nation: "AR", league: "LaLiga", ovr: 87, pac: 82, sho: 85, pas: 89, dri: 92, def: 45, phy: 62, clutch: 90 }
+      ,{ id: "kerem-line", name: "Kerem Line", pos: "LW", role: "KNT", nation: "TR", league: "Süper Lig", ovr: 86, pac: 91, sho: 82, pas: 80, dri: 88, def: 42, phy: 65, clutch: 82 }
+      ,{ id: "oscar-whip", name: "Oscar Whip", pos: "RW", role: "KNT", nation: "BR", league: "Premier", ovr: 87, pac: 90, sho: 84, pas: 83, dri: 89, def: 43, phy: 66, clutch: 84 }
+      ,{ id: "burak-post", name: "Burak Post", pos: "ST", role: "FRV", nation: "TR", league: "Süper Lig", ovr: 86, pac: 82, sho: 90, pas: 74, dri: 80, def: 36, phy: 86, clutch: 88 }
+      ,{ id: "mike-safe", name: "Mike Safe", pos: "GK", role: "KL", nation: "EN", league: "Premier", ovr: 85, pac: 50, sho: 18, pas: 66, dri: 52, def: 86, phy: 82, clutch: 83 }
+    ];
+
+    const eventTemplates = [
+      {
+        delta: 7,
+        goalFor: .26,
+        forGoal: "Yesil zamanli sut aglarda. Sonunda girdik.",
+        forMiss: "Yesil zamanli sut, kaleci uzayip cikardi."
+      },
+      {
+        delta: -8,
+        forMiss: "Top direkten cizgiye dustu, iceri girmeyi reddetti."
+      },
+      {
+        delta: -6,
+        forMiss: "Rakip kaleci cizgiden cikardi. Normal degil."
+      },
+      {
+        delta: 10,
+        goalFor: .68,
+        forGoal: "Cutback penalti noktasina, tek dokunus ve gol.",
+        forMiss: "Cutback geldi ama son dokunus auta gitti."
+      },
+      {
+        delta: -12,
+        goalAgainst: .56,
+        againstGoal: "Rakip anlamsiz acidan trivela vurdu. Tabii ki gol.",
+        againstMiss: "Rakip anlamsiz acidan trivela denedi, bu kez disari."
+      },
+      {
+        delta: -9,
+        goalAgainst: .36,
+        againstGoal: "Yumusacik temas, penalti. Rakip gole cevirdi.",
+        againstMiss: "Yumusacik temas, penalti. Kaleci tuttu, nefes aldik."
+      },
+      {
+        delta: 9,
+        goalFor: .3,
+        forGoal: "Bek bindirdi, arka direkte bosluk ve gol.",
+        forMiss: "Bek bindirdi, arka direkte dokunamadik."
+      },
+      {
+        delta: -10,
+        goalAgainst: .28,
+        againstGoal: "90 derinlik patladi, arkaya tek pasla indiler ve atti.",
+        againstMiss: "90 derinlik patladi ama son vurus kalecide kaldi."
+      },
+      {
+        delta: 9,
+        goalFor: .3,
+        forGoal: "Son hucumda arka direk bos kaldi, gol geldi.",
+        forMiss: "Son hucumda arka direk bos kaldi ama vuramadik."
+      }
+    ];
+
+    const excuses = [
+      "Abi algılamıyor.",
+      "Şuna bak nasıl tackle atıyor!",
+      "Ah İtalyan olmayacaksın var ya.",
+      "Görüyor musunuz abi işte bu normal değil.",
+      "Kesin Cronus Zen.",
+      "Tackle canavarı!",
+      "Makro değilse kanal ismini değiştiririm, o kadar makro bu.",
+      "Hay makronu.",
+      "Bu animasyon bende niye hiç çıkmıyor?",
+      "Oyunun kararını verdiği maçlardan biri."
+    ];
+
+    const state = {
+      setupFormations: [],
+      setupTactics: [],
+      setupManagers: [],
+      formation: null,
+      tactic: null,
+      manager: null,
+      picks: [],
+      options: [],
+      pendingPlayer: null,
+      swapIndex: null,
+      wins: 0,
+      losses: 0,
+      results: [],
+      goalsFor: 0,
+      goalsAgainst: 0,
+      playerStats: {},
+      match: null,
+      draftOrder: []
+    };
+
+    let excuseTimer = null;
+    let matchTimer = null;
+
+    async function loadExternalCards() {
+      try {
+        const response = await fetch("data/cards.json", { cache: "no-store" });
+        if (!response.ok) return;
+        const cards = await response.json();
+        if (!Array.isArray(cards) || cards.length < 13) return;
+        players = cards.map(normalizeCard).filter(card => card.id && card.name && card.pos);
+      } catch (error) {
+        // Local prototype keeps using fallback cards when no external data exists.
+      }
+    }
+
+    function normalizeCard(card) {
+      const pos = String(card.pos || card.position || "").toUpperCase();
+      return {
+        id: String(card.id || `${card.name}-${pos}-${card.ovr || card.rating}`).toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        name: String(card.name || card.player || ""),
+        pos,
+        role: roleFromPos(pos),
+        nation: String(card.nation || card.country || ""),
+        league: String(card.league || ""),
+        club: String(card.club || ""),
+        cardType: String(card.cardType || card.version || "Gold"),
+        isIcon: Boolean(card.isIcon) || /icon/i.test(String(card.cardType || card.version || "")),
+        isHero: Boolean(card.isHero) || /hero/i.test(String(card.cardType || card.version || "")),
+        image: card.image || card.cardImage || "",
+        cardImage: card.cardImage || "",
+        alternatePositions: (card.alternatePositions || card.alternativePositions || []).map(position => String(position).toUpperCase()),
+        ovr: Number(card.ovr || card.rating || 75),
+        pac: Number(card.pac || card.pace || 70),
+        sho: Number(card.sho || card.shooting || 60),
+        pas: Number(card.pas || card.passing || 60),
+        dri: Number(card.dri || card.dribbling || 60),
+        def: Number(card.def || card.defending || 50),
+        phy: Number(card.phy || card.physical || 60),
+        clutch: Number(card.clutch || card.composure || card.ovr || card.rating || 75)
+      };
+    }
+
+    const screens = {
+      formation: document.getElementById("formationScreen"),
+      tactic: document.getElementById("tacticScreen"),
+      draft: document.getElementById("draftScreen"),
+      manager: document.getElementById("managerScreen"),
+      boost: document.getElementById("boostScreen"),
+      match: document.getElementById("matchScreen"),
+      result: document.getElementById("resultScreen")
+    };
+
+    function showScreen(name) {
+      Object.values(screens).forEach(screen => screen.classList.remove("active"));
+      screens[name].classList.add("active");
+    }
+
+    function sample(list, count) {
+      return [...list].sort(() => Math.random() - .5).slice(0, count);
+    }
+
+    function randomItem(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function roleFromPos(pos) {
+      if (["ST", "CF"].includes(pos)) return "FRV";
+      if (["LW", "RW", "LM", "RM"].includes(pos)) return "KNT";
+      if (["LB", "RB", "LWB", "RWB"].includes(pos)) return "BEK";
+      if (["CB"].includes(pos)) return "STP";
+      if (["GK"].includes(pos)) return "KL";
+      return "OS";
+    }
+
+    function labelForPos(pos) {
+      return { ST: "SF", LW: "SLK", RW: "SGK", LM: "SLK", RM: "SGK", CAM: "MOO", CM: "MO", CDM: "MDO", LB: "SLB", RB: "SGB", LWB: "SLB", RWB: "SGB", CB: "STP", GK: "KL" }[pos] || pos;
+    }
+
+    function formationSlots(name) {
+      const clean = name.replace(/\(.+\)/, "");
+      const lines = clean.split("-").map(Number);
+      const roles = [["GK"]];
+      const defenders = lines[0] === 3 ? ["CB", "CB", "CB"] : lines[0] === 5 ? ["LB", "CB", "CB", "CB", "RB"] : ["LB", "CB", "CB", "RB"];
+      roles.push(defenders);
+      const mids = lines.slice(1, -1);
+      const forwards = lines[lines.length - 1];
+      mids.forEach((count, index) => {
+        if (count === 1) roles.push([index === 0 ? "CDM" : "CAM"]);
+        if (count === 2) roles.push(index === 0 ? ["CDM", "CDM"] : ["CM", "CM"]);
+        if (count === 3) roles.push(index === 0 ? ["CM", "CM", "CM"] : ["CAM", "CAM", "CAM"]);
+        if (count === 4) roles.push(["LM", "CM", "CM", "RM"]);
+        if (count === 5) roles.push(["LM", "CM", "CM", "CM", "RM"]);
+      });
+      if (forwards === 1) roles.push(["ST"]);
+      if (forwards === 2) roles.push(["ST", "ST"]);
+      if (forwards === 3) roles.push(["LW", "ST", "RW"]);
+      if (forwards === 4) roles.push(["LW", "ST", "ST", "RW"]);
+
+      const bottom = 86;
+      const top = 16;
+      const rowGap = roles.length > 1 ? (bottom - top) / (roles.length - 1) : 0;
+      const slots = [];
+      roles.forEach((line, lineIndex) => {
+        const y = bottom - rowGap * lineIndex;
+        const xs = spread(line.length);
+        line.forEach((pos, index) => slots.push({ pos, role: labelForPos(pos), x: xs[index], y }));
+      });
+      return slots.slice(0, 11);
+    }
+
+    function spread(count) {
+      if (count === 1) return [50];
+      if (count === 2) return [33, 67];
+      if (count === 3) return [20, 50, 80];
+      if (count === 4) return [11, 37, 63, 89];
+      return [7, 29, 50, 71, 93];
+    }
+
+    function currentSlots() {
+      if (!state.formation) return [];
+      return [...formationSlots(state.formation), { pos: "BEN", role: "BEN" }, { pos: "BEN", role: "BEN" }];
+    }
+
+    function currentPickSlot() {
+      const slots = currentSlots();
+      state.draftOrder = state.draftOrder.filter(index => !state.picks[index] && slots[index]);
+      if (!state.draftOrder.length) {
+        state.draftOrder = sample(slots.map((slot, index) => index).filter(index => !state.picks[index]), slots.length);
+      }
+      return slots[state.draftOrder[0]];
+    }
+
+    function currentPickIndex() {
+      currentPickSlot();
+      return state.draftOrder[0];
+    }
+
+    function pickCount() {
+      return state.picks.filter(Boolean).length;
+    }
+
+    function draftedPlayers() {
+      return state.picks.filter(Boolean);
+    }
+
+    function initSetup() {
+      if (!state.setupFormations.length) state.setupFormations = sample(formationPool, 3);
+      if (!state.setupTactics.length) state.setupTactics = sample(tacticPool, 3);
+      if (!state.setupManagers.length) state.setupManagers = sample(managers, 3);
+    }
+
+    function renderLegend(targetId) {
+      document.getElementById(targetId).innerHTML = [
+        ["Forvet", roleColors.SF], ["Kanat", roleColors.SLK], ["Orta Saha", roleColors.MO],
+        ["Bek", roleColors.SLB], ["Stoper", roleColors.STP], ["Kaleci", roleColors.KL]
+      ].map(([label, color]) => `<span><i style="background:${color}"></i>${label}</span>`).join("");
+    }
+
+    function renderFormationOptions() {
+      const box = document.getElementById("formationOptions");
+      box.innerHTML = "";
+      state.setupFormations.forEach(formation => {
+        const button = document.createElement("button");
+        button.className = "setup-option";
+        button.innerHTML = `<b>${formation}</b><span>${formationHint(formation)}</span>`;
+        button.addEventListener("click", () => {
+          state.formation = formation;
+          saveState();
+          renderTacticOptions();
+          showScreen("tactic");
+        });
+        box.appendChild(button);
+      });
+      renderLegend("legend");
+    }
+
+    function formationHint(formation) {
+      if (formation.includes("3-4-3") || formation.includes("4-3-3")) return "Kanat baskısı";
+      if (formation.includes("4-2-2-2") || formation.includes("3-5-2")) return "Çift forvet";
+      if (formation.includes("5-")) return "Güvenli blok";
+      if (formation.includes("4-2-3-1")) return "Meta dengesi";
+      return "Dengeli plan";
+    }
+
+    function renderTacticOptions() {
+      const box = document.getElementById("tacticOptions");
+      box.innerHTML = "";
+      state.setupTactics.forEach(tactic => {
+        const button = document.createElement("button");
+        button.className = "setup-option";
+        button.innerHTML = `<strong>${tactic.name}</strong><span>${tactic.text}</span>`;
+        button.addEventListener("click", () => {
+          state.tactic = tactic;
+          state.picks = [];
+          state.options = [];
+          state.pendingPlayer = null;
+          state.draftOrder = [];
+          saveState();
+          renderDraft();
+          showScreen("draft");
+        });
+        box.appendChild(button);
+      });
+      renderLegend("legendTactic");
+    }
+
+    function renderDraft() {
+      document.getElementById("formationLabel").textContent = state.formation || "-";
+      document.getElementById("pickLabel").textContent = `${pickCount()}/13`;
+      document.getElementById("chemLabel").textContent = totalChem();
+      document.getElementById("managerLabel").textContent = state.manager ? state.manager.name : "Kadrodan sonra";
+      renderBoard();
+      renderBench();
+      renderChemPanel();
+      renderPickCards();
+      document.getElementById("draftHint").textContent = draftHint();
+      document.getElementById("rollBtn").disabled = pickCount() >= 13 || !!state.pendingPlayer;
+      const showReturn = canReturnToWL();
+      document.getElementById("returnToWL").classList.toggle("hidden", !showReturn);
+      document.querySelector(".draft-actions").classList.toggle("has-return", showReturn);
+    }
+
+    function canReturnToWL() {
+      return pickCount() >= 13 && !!state.manager && state.results.length < 15;
+    }
+
+    function renderBoard() {
+      const board = document.getElementById("draftBoard");
+      board.innerHTML = "";
+      formationSlots(state.formation).forEach((slot, index) => {
+        const player = state.picks[index];
+        const div = document.createElement("div");
+        const placeable = canPlaceInSlot(slot, index);
+        const swapTarget = canSwapTo(index);
+        const swapSource = state.swapIndex === index;
+        div.className = `slot ${placeable ? "placeable" : state.pendingPlayer && !player ? "blocked" : ""} ${swapTarget ? "swap-target" : ""} ${swapSource ? "swap-source" : ""}`;
+        div.style.setProperty("--x", `${slot.x}%`);
+        div.style.setProperty("--y", `${slot.y}%`);
+        div.style.setProperty("--role", roleColors[slot.role]);
+        div.innerHTML = `
+          <div class="slot-card ${player ? "filled" : "empty"}">${player ? renderFcCard(player, slot, "mini") : ""}</div>
+          ${player ? renderChemDiamonds(playerChem(player, slot).total) : ""}
+          <div class="role-pill">${slot.role}</div>
+        `;
+        if (placeable) div.addEventListener("click", () => placePlayer(index));
+        else if (swapTarget) div.addEventListener("click", () => swapPlayers(index));
+        else if (!state.pendingPlayer && player) div.addEventListener("click", () => selectSwapSource(index));
+        board.appendChild(div);
+      });
+    }
+
+    function renderBench() {
+      const box = document.getElementById("bench");
+      box.innerHTML = "";
+      [11, 12].forEach(index => {
+        const player = state.picks[index];
+        const placeable = canPlaceInSlot({ pos: "BEN", role: "BEN" }, index);
+        const swapTarget = canSwapTo(index);
+        const swapSource = state.swapIndex === index;
+        const div = document.createElement("div");
+        div.className = `bench-slot ${placeable ? "placeable" : ""} ${swapTarget ? "swap-target" : ""} ${swapSource ? "swap-source" : ""}`;
+        div.innerHTML = `<b>${player ? effectiveOvr(player, { pos: player.pos, role: player.role }) : "YOK"}</b><span>${player ? `${player.name} - ${player.pos}` : "Boş yedek"}</span>`;
+        if (placeable) div.addEventListener("click", () => placePlayer(index));
+        else if (swapTarget) div.addEventListener("click", () => swapPlayers(index));
+        else if (!state.pendingPlayer && player) div.addEventListener("click", () => selectSwapSource(index));
+        box.appendChild(div);
+      });
+    }
+
+    function renderPickCards() {
+      const box = document.getElementById("pickCards");
+      box.innerHTML = "";
+      state.options.forEach(player => {
+        const slot = currentPickSlot() || { pos: player.pos, role: player.role };
+        const disabled = draftedPlayers().some(pick => pick.id === player.id);
+        const selected = state.pendingPlayer?.id === player.id;
+        const button = document.createElement("button");
+        button.className = `player-card ${disabled ? "disabled" : ""} ${selected ? "selected" : ""}`;
+        button.disabled = disabled;
+        button.innerHTML = `
+          ${renderFcCard(player, slot)}
+          <div class="pick-meta">
+            <span>${shortName(player.name)}</span>
+            <span class="chem-dot">KIM ${playerChem(player, slot).total}</span>
+          </div>
+        `;
+        button.addEventListener("click", () => pickPlayer(player));
+        box.appendChild(button);
+      });
+    }
+
+    function renderFcCard(player, slot) {
+      const theme = cardTheme(player);
+      const cardImage = player.cardImage ? ` style="--card-image:url('${player.cardImage}')"` : "";
+      return `
+        <div class="fc-card ${theme} ${player.cardImage ? "real-card" : ""}"${cardImage}>
+          <div class="fc-rating">${player.ovr}</div>
+          <div class="fc-pos">${player.pos}</div>
+          <div class="fc-photo" ${player.image ? `style="background-image:url('${player.image}')"` : ""}></div>
+          <div class="fc-name">${shortName(player.name)}</div>
+          <div class="fc-stats">
+            <span>${player.pac} PAC</span><span>${player.sho} SHO</span><span>${player.pas} PAS</span>
+            <span>${player.dri} DRI</span><span>${player.def} DEF</span><span>${player.phy} PHY</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function cardTheme(player) {
+      const type = `${player.cardType || ""} ${player.version || ""}`.toLowerCase();
+      if (type.includes("icon")) return "icon";
+      if (type.includes("toty") || player.ovr >= 91) return "toty";
+      if (type.includes("thunder")) return "thunder";
+      if (type.includes("promo") || type.includes("special") || player.ovr >= 88) return "promo";
+      return "gold";
+    }
+
+    function renderChemDiamonds(points) {
+      return `<div class="chem-diamonds">${[0, 1, 2].map(index => `<i class="${index < points ? "on" : ""}"></i>`).join("")}</div>`;
+    }
+
+    function draftHint() {
+      const slot = currentPickSlot();
+      if (state.pendingPlayer) {
+        const label = state.pendingPlayer.pos === "GK" ? "KL" : labelForPos(state.pendingPlayer.pos);
+        return `${state.pendingPlayer.name} seçildi. Sahada boş ${label} slotuna dokun ve yerleştir.`;
+      }
+      if (state.swapIndex !== null) {
+        const player = state.picks[state.swapIndex];
+        return `${player?.name || "Oyuncu"} seçildi. Yer değiştireceği uygun oyuncuya dokun.`;
+      }
+      if (!slot && !state.manager) return "Kadro tamam. Teknik direktör seçimine geç.";
+      if (!slot) return "Run hazır. Maça geçebilirsin.";
+      if (slot.role === "BEN") return "Yedek seçimi: kimyayı bozmaz, maç içi kaliteyi artırır.";
+      return `Sıradaki kart havuzu: ${slot.role}. Kartı seç, sonra sahadaki boş mevkiine yerleştir.`;
+    }
+
+    function rollOptions() {
+      const slot = currentPickSlot();
+      if (!slot || state.pendingPlayer) return;
+      const index = currentPickIndex();
+      const unused = players.filter(player => !draftedPlayers().some(pick => pick.id === player.id));
+      const matching = unused.filter(player => slot.role === "BEN" || canPlayerPlaySlot(player, slot));
+      state.options = sample(matching, Math.min(3, matching.length));
+      state.activePickIndex = index;
+      saveState();
+      renderDraft();
+    }
+
+    function pickPlayer(player) {
+      if (pickCount() >= 13 || draftedPlayers().some(pick => pick.id === player.id)) return;
+      state.pendingPlayer = player;
+      state.swapIndex = null;
+      saveState();
+      renderDraft();
+    }
+
+    function canPlayerPlaySlot(player, slot) {
+      if (!player || !slot) return false;
+      return [player.pos, ...(player.alternatePositions || [])].includes(slot.pos);
+    }
+
+    function canPlaceInSlot(slot, index) {
+      if (!state.pendingPlayer || state.picks[index]) return false;
+      if (slot.role === "BEN") return true;
+      return canPlayerPlaySlot(state.pendingPlayer, slot);
+    }
+
+    function selectSwapSource(index) {
+      if (!state.picks[index]) return;
+      state.pendingPlayer = null;
+      state.swapIndex = state.swapIndex === index ? null : index;
+      saveState();
+      renderDraft();
+    }
+
+    function canSwapTo(targetIndex) {
+      if (state.swapIndex === null || state.swapIndex === targetIndex || !state.picks[targetIndex]) return false;
+      const slots = currentSlots();
+      const sourceIndex = state.swapIndex;
+      const sourcePlayer = state.picks[sourceIndex];
+      const targetPlayer = state.picks[targetIndex];
+      const sourceSlot = slots[sourceIndex];
+      const targetSlot = slots[targetIndex];
+      if (!sourcePlayer || !targetPlayer || !sourceSlot || !targetSlot) return false;
+      const sourceFitsTarget = targetSlot.role === "BEN" || canPlayerPlaySlot(sourcePlayer, targetSlot);
+      const targetFitsSource = sourceSlot.role === "BEN" || canPlayerPlaySlot(targetPlayer, sourceSlot);
+      return sourceFitsTarget && targetFitsSource;
+    }
+
+    function swapPlayers(targetIndex) {
+      if (!canSwapTo(targetIndex)) return;
+      const sourceIndex = state.swapIndex;
+      [state.picks[sourceIndex], state.picks[targetIndex]] = [state.picks[targetIndex], state.picks[sourceIndex]];
+      state.swapIndex = null;
+      saveState();
+      renderDraft();
+    }
+
+    function placePlayer(index) {
+      if (!state.pendingPlayer) return;
+      const slot = currentSlots()[index];
+      if (!slot || !canPlaceInSlot(slot, index)) return;
+      state.picks[index] = state.pendingPlayer;
+      state.draftOrder = state.draftOrder.filter(slotIndex => slotIndex !== index);
+      state.pendingPlayer = null;
+      state.swapIndex = null;
+      state.options = [];
+      saveState();
+      renderDraft();
+      if (pickCount() === 13) {
+        renderManagerOptions();
+        showScreen("manager");
+      }
+    }
+
+    function renderManagerOptions() {
+      const box = document.getElementById("managerOptions");
+      box.innerHTML = "";
+      state.setupManagers.forEach(manager => {
+        const chemAfter = totalChem(manager);
+        const button = document.createElement("button");
+        button.className = "setup-option";
+        button.innerHTML = `<b>${manager.name}</b><span>${manager.nation} · ${manager.league}<br>${manager.style} · Kimya ${chemAfter}</span>`;
+        button.addEventListener("click", () => {
+          state.manager = manager;
+          saveState();
+          renderReady();
+          showScreen("boost");
+        });
+        box.appendChild(button);
+      });
+      renderLegend("legendManager");
+    }
+
+    function playerChem(player, slot, manager = state.manager) {
+      if (slot.role === "BEN" || !canPlayerPlaySlot(player, slot)) {
+        return { total: 0, club: 0, nation: 0, league: 0, manager: 0 };
+      }
+      const starters = state.picks.slice(0, 11).filter(Boolean);
+      const specialBase = isChemJoker(player) ? 1 : 0;
+      const jokerSupport = starters.filter(pick => pick !== player && isChemJoker(pick)).length;
+      const clubCount = isChemJoker(player) ? 0 : starters.filter(pick => !isChemJoker(pick) && pick.club && pick.club === player.club).length;
+      const nationCount = starters.filter(pick => pick.nation && pick.nation === player.nation).length;
+      const leagueCount = isChemJoker(player) ? 0 : starters.filter(pick => !isChemJoker(pick) && pick.league && pick.league === player.league).length;
+      const club = thresholdPoints(clubCount, [2, 4, 7]);
+      const nation = thresholdPoints(nationCount, [2, 5, 8]);
+      const league = thresholdPoints(leagueCount, [3, 5, 8]);
+      const managerPoint = manager && (manager.nation === player.nation || manager.league === player.league) ? 1 : 0;
+      return {
+        special: specialBase,
+        joker: jokerSupport,
+        club,
+        nation,
+        league,
+        manager: managerPoint,
+        total: Math.min(3, specialBase + jokerSupport + club + nation + league + managerPoint)
+      };
+    }
+
+    function isChemJoker(player) {
+      const type = `${player?.cardType || ""} ${player?.version || ""}`.toLowerCase();
+      return Boolean(player?.isIcon || player?.isHero || type.includes("icon") || type.includes("hero"));
+    }
+
+    function thresholdPoints(count, thresholds) {
+      if (count >= thresholds[2]) return 3;
+      if (count >= thresholds[1]) return 2;
+      if (count >= thresholds[0]) return 1;
+      return 0;
+    }
+
+    function totalChem(manager = state.manager) {
+      const slots = currentSlots();
+      if (!slots.length) return 0;
+      return state.picks.slice(0, 11).reduce((sum, player, index) => sum + (player ? playerChem(player, slots[index] || { role: "BEN" }, manager).total : 0), 0);
+    }
+
+    function effectiveOvr(player, slot) {
+      const chem = playerChem(player, slot).total;
+      return player.ovr + chem;
+    }
+
+    function renderChemPanel() {
+      const total = totalChem();
+      document.getElementById("chemTotalLabel").textContent = `${total}/33`;
+      document.getElementById("chemMeter").style.setProperty("--chem-width", `${Math.min(100, total / 33 * 100)}%`);
+      const starters = state.picks.slice(0, 11).filter(Boolean);
+      const breakdown = [
+        ["Kulüp", topChemCounts(starters, "club", [2, 4, 7])],
+        ["Ülke", topChemCounts(starters, "nation", [2, 5, 8])],
+        ["Lig", topChemCounts(starters, "league", [3, 5, 8])]
+      ];
+      document.getElementById("chemBreakdown").innerHTML = breakdown.map(([label, rows]) => `
+        <div><b>${label}</b>${rows.length ? rows.map(row => `${row.name}: ${row.count}/${row.next || "max"}`).join("<br>") : "Henüz bağlantı yok"}</div>
+      `).join("");
+    }
+
+    function topChemCounts(playersList, key, thresholds) {
+      const counts = new Map();
+      playersList.forEach(player => {
+        const value = player[key];
+        if (value) counts.set(value, (counts.get(value) || 0) + 1);
+      });
+      return [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name, count]) => ({ name, count, next: thresholds.find(threshold => threshold > count) }));
+    }
+
+    function teamPower() {
+      const slots = currentSlots();
+      const starters = state.picks.slice(0, 11).filter(Boolean);
+      const base = starters.reduce((sum, player, index) => sum + effectiveOvr(player, slots[index]) + player.clutch * .08, 0) / Math.max(starters.length, 1);
+      return base + (state.tactic?.mod || 0) + (state.manager?.mod || 0) + totalChem() * .18;
+    }
+
+    function renderReady() {
+      renderDraft();
+      document.getElementById("readyText").textContent = `${state.formation} · ${state.tactic.name} · ${state.manager.name} · Kimya ${totalChem()}`;
+    }
+
+    function startMatch() {
+      window.clearInterval(matchTimer);
+      state.match = {
+        minuteIndex: 0,
+        clockIndex: 0,
+        home: 0,
+        away: 0,
+        momentum: 50,
+        phase: "regular",
+        paused: false,
+        timeline: buildMatchTimeline(),
+        scorers: [],
+        assists: [],
+        penalties: [],
+        finished: false
+      };
+      document.getElementById("eventFeed").innerHTML = "";
+      document.getElementById("nextEvent").textContent = "Duraklat";
+      renderRunTracks();
+      updateMatchUI();
+      showScreen("match");
+      matchTimer = window.setInterval(tickMatch, 150);
+    }
+
+    function tickMatch() {
+      const match = state.match;
+      if (!match || match.paused) return;
+      if (match.clockIndex >= match.timeline.length) {
+        resolveAfterRegularTime();
+        return;
+      }
+      const tick = match.timeline[match.clockIndex];
+      match.minute = tick.minute;
+      match.phase = tick.phase;
+      if (tick.event) resolveMatchEvent(tick);
+      match.clockIndex += 1;
+      updateMatchUI();
+    }
+
+    function resolveMatchEvent(tick) {
+      const match = state.match;
+      const event = tick.event;
+      const power = teamPower();
+      const luck = Math.random() * 100;
+      let text = event.forMiss || event.againstMiss || event.text || "Oyun bir seyler denedi, sonuc cikmadi.";
+      match.momentum = Math.max(5, Math.min(95, match.momentum + event.delta + (power - 92) * .16));
+      if (event.goalFor && luck < event.goalFor * (power + match.momentum) / 1.8) {
+        match.home += 1;
+        recordMatchGoal(match);
+        text = event.forGoal || text;
+      }
+      if (event.goalAgainst && luck < event.goalAgainst * (112 - power + (100 - match.momentum)) / 1.8) {
+        match.away += 1;
+        text = event.againstGoal || text;
+        showExcuse("Gol yedik");
+      }
+      addEvent(tick.minuteLabel, text);
+    }
+
+    function resolveSilentMatchEvent(match, tick) {
+      const event = tick.event;
+      if (!event) return;
+      const power = teamPower();
+      const luck = Math.random() * 100;
+      match.momentum = Math.max(5, Math.min(95, match.momentum + event.delta + (power - 92) * .16));
+      if (event.goalFor && luck < event.goalFor * (power + match.momentum) / 1.8) {
+        match.home += 1;
+        recordMatchGoal(match);
+      }
+      if (event.goalAgainst && luck < event.goalAgainst * (112 - power + (100 - match.momentum)) / 1.8) {
+        match.away += 1;
+      }
+    }
+
+    function finishWeekendLeague() {
+      window.clearInterval(matchTimer);
+      while (state.results.length < 15) {
+        const match = simulateSilentMatch();
+        const won = match.home > match.away;
+        state.results.push(won ? "win" : "loss");
+        state.wins += won ? 1 : 0;
+        state.losses += won ? 0 : 1;
+        commitMatchStats(match, won);
+      }
+      state.match = null;
+      saveState();
+      renderRunTracks();
+      renderSeasonSummary();
+      renderRewardPanel();
+      document.getElementById("matchResultPanel").classList.add("hidden");
+      document.getElementById("resultActions").classList.add("hidden");
+      document.getElementById("resultChat").classList.add("hidden");
+      showScreen("result");
+    }
+
+    function simulateSilentMatch() {
+      const power = teamPower();
+      const opponent = 83 + Math.random() * 24 + state.results.length * .18;
+      const script = (Math.random() - .5) * 22;
+      const winChance = Math.max(.28, Math.min(.82, .56 + (power - opponent + script) / 95));
+      const won = Math.random() < winChance;
+      const goalBase = Math.max(1, Math.min(4, 1.8 + (power - 88) / 18 + Math.random() * 1.2));
+      const againstBase = Math.max(0, Math.min(4, 1.5 + (opponent - power) / 20 + Math.random() * 1.6));
+      let home = Math.max(0, Math.round(goalBase + (won ? Math.random() * 1.4 : -Math.random() * .9)));
+      let away = Math.max(0, Math.round(againstBase + (won ? -Math.random() * .7 : Math.random() * 1.5)));
+      if (won && home <= away) home = away + 1;
+      if (!won && away <= home) away = home + 1;
+      if (Math.random() < .1) {
+        home += won ? 1 : 0;
+        away += won ? 0 : 1;
+      }
+      const match = {
+        home,
+        away,
+        momentum: 50,
+        phase: "regular",
+        scorers: [],
+        assists: [],
+        finished: true
+      };
+      for (let i = 0; i < match.home; i += 1) recordMatchGoal(match);
+      return match;
+    }
+
+    function recordMatchGoal(match) {
+      const scorer = chooseScorer();
+      const assist = chooseAssist(scorer);
+      match.scorers.push(scorer.id);
+      if (assist) match.assists.push(assist.id);
+    }
+
+    function chooseScorer() {
+      const slots = formationSlots(state.formation);
+      const starters = state.picks.slice(0, 11).filter(Boolean);
+      const weighted = starters.flatMap((player, index) => {
+        const role = slots[index]?.role || player.role;
+        const weight = role === "FRV" ? 7 : role === "KNT" ? 5 : role === "OS" ? 3 : role === "BEK" ? 1 : 2;
+        return Array.from({ length: weight }, () => player);
+      });
+      return randomItem(weighted.length ? weighted : starters) || { id: "unknown", name: "Oyuncu", role: "OS" };
+    }
+
+    function chooseAssist(scorer) {
+      if (Math.random() > .78) return null;
+      const slots = formationSlots(state.formation);
+      const starters = state.picks.slice(0, 11).filter(Boolean).filter(player => player.id !== scorer.id);
+      const weighted = starters.flatMap((player, index) => {
+        const role = slots[index]?.role || player.role;
+        const weight = role === "KNT" ? 6 : role === "OS" ? 5 : role === "FRV" ? 3 : role === "BEK" ? 3 : 1;
+        return Array.from({ length: weight }, () => player);
+      });
+      return randomItem(weighted.length ? weighted : starters);
+    }
+
+    function buildMatchTimeline() {
+      const eventMinutes = sample([7, 12, 18, 23, 26, 33, 41, 45, 52, 61, 67, 74, 80, 86, 90], 8).sort((a, b) => a - b);
+      const eventTicks = new Map(eventMinutes.map(minute => [Math.round(minute / 90 * 99), randomItem(eventTemplates)]));
+      return Array.from({ length: 100 }, (_, index) => {
+        const minute = Math.min(90, Math.round(index / 99 * 90));
+        return {
+          phase: "regular",
+          minute,
+          minuteLabel: `${minute}'`,
+          event: eventTicks.get(index) || null
+        };
+      });
+    }
+
+    function buildExtraTimeTimeline() {
+      const minutes = sample([93, 98, 104, 109, 114, 119, 120], 4).sort((a, b) => a - b);
+      const eventTicks = new Map(minutes.map(minute => [Math.round((minute - 91) / 29 * 33), randomItem(eventTemplates)]));
+      return Array.from({ length: 34 }, (_, index) => {
+        const minute = Math.min(120, 91 + Math.round(index / 33 * 29));
+        return {
+          phase: minute <= 105 ? "extra-1" : "extra-2",
+          minute,
+          minuteLabel: `${minute}'`,
+          event: eventTicks.get(index) || null
+        };
+      });
+    }
+
+    function resolveAfterRegularTime() {
+      const match = state.match;
+      if (match.home === match.away && match.phase === "regular") {
+        addEvent("90'", "Maç uzatmaya gidiyor. İki devre daha stres.");
+        match.timeline = buildExtraTimeTimeline();
+        match.clockIndex = 0;
+        match.phase = "extra-1";
+        updateMatchUI();
+        return;
+      }
+      if (match.home === match.away) {
+        startPenalties();
+        return;
+      }
+      finishMatch();
+    }
+
+    function startPenalties() {
+      const match = state.match;
+      if (match.phase === "penalties") return;
+      window.clearInterval(matchTimer);
+      match.phase = "penalties";
+      match.penaltyIndex = 0;
+      match.penHome = 0;
+      match.penAway = 0;
+      addEvent("120'", "Penaltılar başlıyor. Sırayla oyuncular geliyor.");
+      updateMatchUI();
+      matchTimer = window.setInterval(tickPenalty, 650);
+    }
+
+    function tickPenalty() {
+      const match = state.match;
+      if (!match || match.phase !== "penalties" || match.paused) return;
+      const taker = penaltyTaker(match.penaltyIndex);
+      const ours = match.penaltyIndex % 2 === 0;
+      const scored = Math.random() < (ours ? teamPower() / 125 : .73);
+      if (ours && scored) match.penHome += 1;
+      if (!ours && scored) match.penAway += 1;
+      addEvent("PEN", `${ours ? taker.name : "Rakip"} penaltıya geldi: ${scored ? "gol" : "kaçırdı"}.`);
+      match.penaltyIndex += 1;
+      updateMatchUI();
+      if (match.penaltyIndex >= 10 && match.penHome !== match.penAway) {
+        match.home += match.penHome > match.penAway ? 1 : 0;
+        match.away += match.penAway > match.penHome ? 1 : 0;
+        finishMatch();
+      } else if (match.penaltyIndex >= 16) {
+        match.home += match.penHome >= match.penAway ? 1 : 0;
+        match.away += match.penAway > match.penHome ? 1 : 0;
+        finishMatch();
+      }
+    }
+
+    function penaltyTaker(index) {
+      const starters = state.picks.slice(0, 11).filter(Boolean);
+      return starters[index % Math.max(1, starters.length)] || { name: "Oyuncu" };
+    }
+
+    function addEvent(minute, text) {
+      const row = document.createElement("div");
+      row.className = "event";
+      row.innerHTML = `<div class="minute">${minute}</div><p>${text}</p>`;
+      document.getElementById("eventFeed").prepend(row);
+    }
+
+    function updateMatchUI() {
+      const match = state.match;
+      document.getElementById("homeScore").textContent = match.home;
+      document.getElementById("awayScore").textContent = match.away;
+      document.getElementById("momentum").textContent = `Momentum ${Math.round(match.momentum)}`;
+      document.getElementById("matchClock").textContent = match.phase === "penalties" ? "PEN" : `${match.minute || 0}'`;
+      document.getElementById("matchPhase").textContent = phaseLabel(match.phase);
+      document.getElementById("matchSub").textContent = match.phase === "penalties"
+        ? `Penaltılar: ${match.penHome || 0}-${match.penAway || 0}`
+        : "";
+      document.getElementById("matchPitch").style.setProperty("--ball-x", `${15 + Math.random() * 70}%`);
+      document.getElementById("matchPitch").style.setProperty("--ball-y", `${22 + Math.random() * 56}%`);
+    }
+
+    function phaseLabel(phase) {
+      if (phase === "extra-1") return "UZATMA 1";
+      if (phase === "extra-2") return "UZATMA 2";
+      if (phase === "penalties") return "PENALTILAR";
+      return "CANLI MAÇ";
+    }
+
+    function finishMatch() {
+      const match = state.match;
+      if (!match || match.finished) return;
+      window.clearInterval(matchTimer);
+      match.finished = true;
+      if (match.home === match.away) {
+        if (Math.random() < teamPower() / 120) {
+          match.home += 1;
+          recordMatchGoal(match);
+        }
+        else {
+          match.away += 1;
+          showExcuse("Son dakika bahanesi", true);
+        }
+      }
+      const won = match.home > match.away;
+      state.results.push(won ? "win" : "loss");
+      state.wins += won ? 1 : 0;
+      state.losses += won ? 0 : 1;
+      commitMatchStats(match, won);
+      saveState();
+      renderRunTracks();
+      document.getElementById("resultMeta").textContent = `Maç ${state.results.length}: ${match.home}-${match.away}`;
+      document.getElementById("resultTitle").textContent = won ? "Kazandık" : "Script yedik";
+      document.getElementById("resultText").textContent = !won && state.results.length === 1
+        ? "0-1 başladın. HAHAHAHAH"
+        : `WL skorumuz: ${state.wins}-${state.losses}`;
+      if (!won) showExcuse("Maç sonu bahanesi", true);
+      document.getElementById("nextMatch").disabled = state.results.length >= 15;
+      if (state.results.length >= 15) {
+        renderSeasonSummary();
+        document.getElementById("matchResultPanel").classList.add("hidden");
+        document.getElementById("resultActions").classList.add("hidden");
+        document.getElementById("resultChat").classList.add("hidden");
+      } else {
+        document.getElementById("matchResultPanel").classList.remove("hidden");
+        document.getElementById("resultActions").classList.remove("hidden");
+        document.getElementById("seasonSummary").classList.add("hidden");
+        document.getElementById("resultChat").classList.remove("hidden");
+        renderResultChat(won, match);
+      }
+      renderRewardPanel();
+      showScreen("result");
+    }
+
+    function renderSeasonSummary() {
+      const summary = document.getElementById("seasonSummary");
+      summary.classList.remove("hidden");
+      document.getElementById("seasonScore").textContent = `${state.wins}-${state.losses}`;
+      document.getElementById("seasonTitle").textContent = seasonTitle();
+      document.getElementById("seasonSub").textContent = `${state.formation} · ${state.tactic?.name || "Taktik yok"} · TD: ${state.manager?.name || "Yok"}`;
+      renderSummaryPitch();
+      renderSeasonStats();
+      renderPlayerStatsTable();
+    }
+
+    function seasonTitle() {
+      if (state.wins === 15 && state.losses === 0) return "15-0 GELDİ";
+      if (state.wins === 14) return "15 KIL PAYI KAÇTI";
+      if (state.wins >= 12) return "NT ABİ";
+      if (state.wins === 11) return "BAŞ ALDIK";
+      if (state.wins >= 8) return "CHAT TESELLİ EDİYOR";
+      return "BU HAFTA OYUN SEÇMEDİ";
+    }
+
+    function renderSummaryPitch() {
+      const pitch = document.getElementById("summaryPitch");
+      const bench = document.getElementById("summaryBench");
+      const slots = formationSlots(state.formation);
+      pitch.innerHTML = slots.map((slot, index) => {
+        const player = state.picks[index];
+        if (!player) return "";
+        const x = Math.max(10, Math.min(90, slot.x));
+        return `
+          <div class="summary-player" style="--x:${x}%;--y:${slot.y}%;--role:${roleColors[slot.role]}">
+            ${renderFcCard(player, slot)}
+            <span>${shortName(player.name)}</span>
+          </div>
+        `;
+      }).join("");
+      bench.innerHTML = state.picks.slice(11, 13).filter(Boolean).map(player => `
+        <span class="bench-chip" style="--role:${roleColors[player.role] || roleColors.BEN}">
+          <i></i>${shortName(player.name)}
+        </span>
+      `).join("");
+    }
+
+    function renderSeasonStats() {
+      const topScorer = topPlayerBy("goals");
+      const topAssist = topPlayerBy("assists");
+      const diff = state.goalsFor - state.goalsAgainst;
+      document.getElementById("seasonStats").innerHTML = `
+        <div class="season-stat"><small>G-M</small><b>${state.wins}-${state.losses}</b></div>
+        <div class="season-stat"><small>Att.-Yed.</small><b>${state.goalsFor}-${state.goalsAgainst}</b></div>
+        <div class="season-stat"><small>Averaj</small><b>${diff > 0 ? "+" : ""}${diff}</b></div>
+        <div class="season-stat highlight"><small>Gol kralı</small><b>${topScorer ? `${shortName(topScorer.player.name)} · ${topScorer.stats.goals}` : "-"}</b></div>
+        <div class="season-stat highlight"><small>Asist kralı</small><b>${topAssist ? `${shortName(topAssist.player.name)} · ${topAssist.stats.assists}` : "-"}</b></div>
+      `;
+    }
+
+    function renderPlayerStatsTable() {
+      const rows = state.picks.slice(0, 13).filter(Boolean).map((player, index) => {
+        const stats = state.playerStats[player.id] || { goals: 0, assists: 0, played: 0, ratingTotal: 0 };
+        const slot = formationSlots(state.formation)[index] || { role: "BEN", pos: player.pos };
+        const rating = stats.played ? (stats.ratingTotal / stats.played).toFixed(1) : "0.0";
+        return { player, stats, slot, rating: Number(rating), ratingText: rating };
+      }).sort((a, b) => b.rating - a.rating);
+      document.getElementById("playerStats").innerHTML = `
+        <div class="player-row header"><span>Oyuncu</span><span>G</span><span>A</span><span>Puan</span></div>
+        ${rows.map(row => `
+          <div class="player-row">
+            <div class="player-name-cell" style="--role:${roleColors[row.slot.role] || roleColors.BEN}">
+              <i class="role-bullet"></i><span>${shortName(row.player.name)}</span>
+            </div>
+            <span>${row.stats.goals}</span>
+            <span>${row.stats.assists}</span>
+            <span>${row.ratingText}</span>
+          </div>
+        `).join("")}
+      `;
+    }
+
+    function topPlayerBy(key) {
+      return state.picks.slice(0, 13).filter(Boolean)
+        .map(player => ({ player, stats: state.playerStats[player.id] || { goals: 0, assists: 0, played: 0, ratingTotal: 0 } }))
+        .filter(item => item.stats[key] > 0)
+        .sort((a, b) => b.stats[key] - a.stats[key])[0] || null;
+    }
+
+    async function shareSeasonResult() {
+      const topScorer = topPlayerBy("goals");
+      const url = location.href.split("#")[0];
+      const text = `Weekend League Draft sonucum: ${state.wins}-${state.losses}\n${seasonTitle()}\nGol: ${state.goalsFor}-${state.goalsAgainst}${topScorer ? `\nGol kralı: ${topScorer.player.name} (${topScorer.stats.goals})` : ""}\n${url}`;
+      const image = await createShareImage();
+      if (navigator.canShare?.({ files: [image] }) && navigator.share) {
+        await navigator.share({ title: "Weekend League Draft", text, url, files: [image] });
+        return;
+      }
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    }
+
+    function createShareImage() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1200;
+      canvas.height = 2400;
+      const ctx = canvas.getContext("2d");
+      const gradient = ctx.createLinearGradient(0, 0, 1200, 2400);
+      gradient.addColorStop(0, "#26185c");
+      gradient.addColorStop(.45, "#090f1c");
+      gradient.addColorStop(1, "#112a20");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#9fb0cf";
+      ctx.font = "900 30px Arial";
+      ctx.letterSpacing = "0px";
+      ctx.fillText("WEEKEND LEAGUE SONUCU", 600, 94);
+      ctx.fillStyle = "#ffd43b";
+      ctx.font = "900 156px Arial";
+      ctx.fillText(`${state.wins}-${state.losses}`, 600, 238);
+      ctx.fillStyle = "#f3f6ff";
+      ctx.font = "900 70px Arial";
+      fitText(ctx, seasonTitle(), 600, 330, 1040);
+      ctx.fillStyle = "#9fb0cf";
+      ctx.font = "900 28px Arial";
+      fitText(ctx, `${state.formation} · ${state.tactic?.name || "Taktik"} · TD: ${state.manager?.name || "Yok"}`, 600, 386, 980);
+
+      drawSectionLabel(ctx, "KADROMUZ", 90, 470);
+      drawSharePitch(ctx, 270, 510, 660, 710);
+
+      const topScorer = topPlayerBy("goals");
+      const topAssist = topPlayerBy("assists");
+      const stats = [
+        ["G-M", `${state.wins}-${state.losses}`],
+        ["ATT.-YED.", `${state.goalsFor}-${state.goalsAgainst}`],
+        ["AVERAJ", `${state.goalsFor - state.goalsAgainst > 0 ? "+" : ""}${state.goalsFor - state.goalsAgainst}`],
+        ["GOL KRALI", topScorer ? `${shortName(topScorer.player.name)} · ${topScorer.stats.goals}` : "-"],
+        ["ASIST KRALI", topAssist ? `${shortName(topAssist.player.name)} · ${topAssist.stats.assists}` : "-"]
+      ];
+      drawSectionLabel(ctx, "WL BOYUNCA", 90, 1320);
+      stats.forEach(([label, value], index) => {
+        const x = 90 + (index % 2) * 510;
+        const y = 1360 + Math.floor(index / 2) * 112;
+        ctx.fillStyle = "rgba(16,27,43,.94)";
+        roundRect(ctx, x, y, 460, 84, 18);
+        ctx.fill();
+        ctx.fillStyle = "#8fa0be";
+        ctx.font = "900 18px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText(label, x + 24, y + 30);
+        ctx.fillStyle = index >= 3 ? "#ffd43b" : "#f3f6ff";
+        ctx.font = "900 36px Arial";
+        fitText(ctx, value, x + 24, y + 66, 410, "left");
+      });
+
+      drawSectionLabel(ctx, "OYUNCU İSTATİSTİKLERİ", 90, 1710);
+      drawSharePlayerTable(ctx, 90, 1740, 1020);
+
+      const reward = rewardTier(state.wins, state.losses);
+      ctx.fillStyle = "rgba(16,27,43,.94)";
+      roundRect(ctx, 90, 2230, 1020, 86, 18);
+      ctx.fill();
+      ctx.fillStyle = "#8fa0be";
+      ctx.font = "900 18px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("WL ÖDÜLLERİ", 120, 2264);
+      ctx.fillStyle = "#f3f6ff";
+      ctx.font = "900 28px Arial";
+      fitText(ctx, `${reward.label} · Paket açılmayı bekliyor`, 120, 2302, 900, "left");
+
+      ctx.fillStyle = "#9cff45";
+      ctx.font = "900 26px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("15-0 WEEKEND LEAGUE DRAFT", 600, 2360);
+      return new Promise(resolve => {
+        canvas.toBlob(blob => resolve(new File([blob], "weekend-league-result.png", { type: "image/png" })), "image/png");
+      });
+    }
+
+    function drawSectionLabel(ctx, text, x, y) {
+      ctx.fillStyle = "#a9b7d5";
+      ctx.font = "900 22px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText(text, x, y);
+    }
+
+    function drawSharePitch(ctx, x, y, width, height) {
+      ctx.fillStyle = "#0b4d28";
+      roundRect(ctx, x, y, width, height, 24);
+      ctx.fill();
+      for (let i = 0; i < 8; i += 1) {
+        ctx.fillStyle = i % 2 ? "rgba(0,0,0,.16)" : "rgba(49,197,99,.12)";
+        ctx.fillRect(x, y + i * height / 8, width, height / 8);
+      }
+      ctx.strokeStyle = "rgba(255,255,255,.24)";
+      ctx.lineWidth = 4;
+      roundRect(ctx, x + 44, y + 48, width - 88, height - 96, 10);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x + width / 2, y + height / 2, 78, 0, Math.PI * 2);
+      ctx.stroke();
+      const slots = formationSlots(state.formation);
+      slots.forEach((slot, index) => {
+        const player = state.picks[index];
+        if (!player) return;
+        const px = x + width * Math.max(10, Math.min(90, slot.x)) / 100;
+        const py = y + height * slot.y / 100;
+        drawShareCard(ctx, player, px - 36, py - 54, 72, 100, roleColors[slot.role]);
+      });
+      state.picks.slice(11, 13).filter(Boolean).forEach((player, index) => {
+        const chipX = x + width / 2 - 160 + index * 170;
+        const chipY = y + height + 24;
+        ctx.fillStyle = "rgba(16,27,43,.96)";
+        roundRect(ctx, chipX, chipY, 150, 42, 12);
+        ctx.fill();
+        ctx.fillStyle = roleColors[player.role] || roleColors.BEN;
+        ctx.beginPath();
+        ctx.arc(chipX + 24, chipY + 21, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#dce7ff";
+        ctx.font = "900 18px Arial";
+        ctx.textAlign = "left";
+        fitText(ctx, shortName(player.name), chipX + 40, chipY + 28, 92, "left");
+      });
+    }
+
+    function drawShareCard(ctx, player, x, y, width, height, color) {
+      const grad = ctx.createLinearGradient(x, y, x + width, y + height);
+      grad.addColorStop(0, color || "#ffd43b");
+      grad.addColorStop(.55, cardTheme(player) === "icon" ? "#fbf4db" : "#152238");
+      grad.addColorStop(1, "#06101b");
+      ctx.fillStyle = grad;
+      roundRect(ctx, x, y, width, height, 10);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.28)";
+      ctx.lineWidth = 2;
+      roundRect(ctx, x, y, width, height, 10);
+      ctx.stroke();
+      ctx.fillStyle = "#f8fbff";
+      ctx.font = "900 20px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText(player.ovr, x + 8, y + 24);
+      ctx.font = "900 12px Arial";
+      ctx.fillText(player.pos, x + 9, y + 42);
+      ctx.textAlign = "center";
+      ctx.font = "900 13px Arial";
+      fitText(ctx, shortName(player.name), x + width / 2, y + height - 12, width - 10);
+    }
+
+    function drawSharePlayerTable(ctx, x, y, width) {
+      const rows = state.picks.slice(0, 13).filter(Boolean).map((player, index) => {
+        const stats = state.playerStats[player.id] || { goals: 0, assists: 0, played: 0, ratingTotal: 0 };
+        const slot = formationSlots(state.formation)[index] || { role: "BEN", pos: player.pos };
+        const rating = stats.played ? (stats.ratingTotal / stats.played).toFixed(1) : "0.0";
+        return { player, stats, slot, rating: Number(rating), ratingText: rating };
+      }).sort((a, b) => b.rating - a.rating);
+      ctx.fillStyle = "rgba(8,15,25,.82)";
+      roundRect(ctx, x, y, width, 444, 18);
+      ctx.fill();
+      ctx.fillStyle = "#8fa0be";
+      ctx.font = "900 16px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText("OYUNCU", x + 28, y + 36);
+      ctx.textAlign = "center";
+      ctx.fillText("G", x + width - 190, y + 36);
+      ctx.fillText("A", x + width - 120, y + 36);
+      ctx.fillText("PUAN", x + width - 48, y + 36);
+      rows.forEach((row, index) => {
+        const rowY = y + 58 + index * 29;
+        ctx.strokeStyle = "rgba(255,255,255,.07)";
+        ctx.beginPath();
+        ctx.moveTo(x + 20, rowY - 11);
+        ctx.lineTo(x + width - 20, rowY - 11);
+        ctx.stroke();
+        ctx.fillStyle = roleColors[row.slot.role] || roleColors.BEN;
+        ctx.beginPath();
+        ctx.arc(x + 28, rowY, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#dfe9ff";
+        ctx.font = "900 18px Arial";
+        ctx.textAlign = "left";
+        fitText(ctx, shortName(row.player.name), x + 46, rowY + 6, 560, "left");
+        ctx.textAlign = "center";
+        ctx.fillText(row.stats.goals, x + width - 190, rowY + 6);
+        ctx.fillText(row.stats.assists, x + width - 120, rowY + 6);
+        ctx.fillText(row.ratingText, x + width - 48, rowY + 6);
+      });
+    }
+
+    function fitText(ctx, text, x, y, maxWidth, align = "center") {
+      const original = ctx.font;
+      const match = original.match(/(\d+)px/);
+      const baseSize = match ? Number(match[1]) : 18;
+      let size = baseSize;
+      ctx.textAlign = align;
+      while (ctx.measureText(text).width > maxWidth && size > 10) {
+        size -= 1;
+        ctx.font = original.replace(/\d+px/, `${size}px`);
+      }
+      ctx.fillText(text, x, y);
+      ctx.font = original;
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + width, y, x + width, y + height, radius);
+      ctx.arcTo(x + width, y + height, x, y + height, radius);
+      ctx.arcTo(x, y + height, x, y, radius);
+      ctx.arcTo(x, y, x + width, y, radius);
+      ctx.closePath();
+    }
+
+    function commitMatchStats(match, won) {
+      state.goalsFor += match.home;
+      state.goalsAgainst += match.away;
+      const slots = formationSlots(state.formation);
+      state.picks.slice(0, 13).filter(Boolean).forEach((player, index) => {
+        const slot = slots[index] || { role: "BEN", pos: player.pos };
+        const stats = playerSeasonStats(player);
+        const goals = match.scorers.filter(id => id === player.id).length;
+        const assists = match.assists.filter(id => id === player.id).length;
+        const started = index < 11 ? 1 : 0;
+        const cleanSheetBoost = slot.role === "KL" || slot.role === "STP" || slot.role === "BEK"
+          ? Math.max(0, 2 - match.away) * .16
+          : 0;
+        const resultBoost = won ? .22 : -.12;
+        const roleBoost = slot.role === "FRV" ? goals * .52 + assists * .22
+          : slot.role === "KNT" || slot.role === "OS" ? goals * .36 + assists * .36
+            : goals * .25 + assists * .2 + cleanSheetBoost;
+        const matchRating = Math.max(4.8, Math.min(10, 6.2 + resultBoost + roleBoost + (effectiveOvr(player, slot) - 82) * .035 + Math.random() * .75));
+        stats.played += started;
+        stats.goals += goals;
+        stats.assists += assists;
+        stats.ratingTotal += matchRating;
+      });
+    }
+
+    function playerSeasonStats(player) {
+      if (!state.playerStats[player.id]) {
+        state.playerStats[player.id] = { goals: 0, assists: 0, played: 0, ratingTotal: 0 };
+      }
+      return state.playerStats[player.id];
+    }
+
+    function renderRewardPanel() {
+      const panel = document.getElementById("rewardPanel");
+      const tier = document.getElementById("rewardTier");
+      const status = document.getElementById("rewardStatus");
+      const cards = document.getElementById("rewardCards");
+      const pack = document.getElementById("openRewards");
+      if (state.results.length < 15) {
+        panel.classList.add("hidden");
+        return;
+      }
+      const reward = rewardTier(state.wins, state.losses);
+      panel.className = "reward-panel";
+      tier.textContent = reward.label;
+      status.innerHTML = `${reward.preMessage} <b>${state.wins}-${state.losses}</b>`;
+      cards.innerHTML = "";
+      pack.disabled = false;
+      pack.innerHTML = `<div><b>${state.wins}-${state.losses}</b><span>Paketi aç</span></div>`;
+    }
+
+    function rewardTier(wins, losses) {
+      if (wins === 15 && losses === 0) {
+        return { label: "Kusursuz paket", min: 93, special: true, preMessage: "15-0 ödül paketi hazır.", postMessage: "WINLEDİK. 15-0 paketi geldi." };
+      }
+      if (wins >= 14) {
+        return { label: "Elite paket", min: 91, special: true, preMessage: "Elite ödül paketi hazır.", postMessage: "WINLEDİK. Tek loss can sıkar ama ödül iyi." };
+      }
+      if (wins >= 12) {
+        return { label: "NT paketi", min: 87, special: true, preMessage: "NT abi paketi hazır.", postMessage: "NT ABİ. 15 olmadı ama paket yine açılır." };
+      }
+      if (wins === 11) {
+        return { label: "Baş aldık paketi", min: 85, special: false, preMessage: "Baş aldık paketi hazır.", postMessage: "Baş aldık. Chat moral vermeye çalışıyor." };
+      }
+      if (wins >= 8) {
+        return { label: "Teselli paketi", min: 83, special: false, preMessage: "Teselli paketi hazır.", postMessage: "NT abi, bu hafta oyun biraz seçmedi." };
+      }
+      return { label: "Acı paket", min: 80, special: false, preMessage: "Acı paket hazır.", postMessage: "Geçmiş olsun. İçerik acıyı hafifletsin." };
+    }
+
+    function openRewardPack() {
+      const panel = document.getElementById("rewardPanel");
+      const pack = document.getElementById("openRewards");
+      if (panel.classList.contains("hidden") || panel.classList.contains("opening") || panel.classList.contains("opened")) return;
+      const reward = rewardTier(state.wins, state.losses);
+      const cards = rewardCards(reward);
+      pack.disabled = true;
+      panel.classList.add("opening");
+      document.getElementById("rewardStatus").textContent = "Paket dönüyor...";
+      window.setTimeout(() => {
+        panel.classList.remove("opening");
+        panel.classList.add("opened");
+        renderRewardCards(cards, reward);
+      }, 900);
+    }
+
+    function rewardCards(reward) {
+      const withImages = players.filter(player => player.cardImage && player.ovr >= reward.min);
+      const specials = withImages.filter(player => reward.special && isSpecialRewardCard(player));
+      const mainPool = specials.length >= 6 ? specials : withImages;
+      const fallback = players.filter(player => player.cardImage).sort((a, b) => b.ovr - a.ovr);
+      return sample(mainPool.length ? mainPool : fallback, 6).sort((a, b) => b.ovr - a.ovr);
+    }
+
+    function isSpecialRewardCard(player) {
+      const type = `${player.cardType || ""} ${player.version || ""}`.toLowerCase();
+      return player.isIcon || player.isHero || player.ovr >= 88 || /(promo|special|toty|tots|thunder|icon|hero|world|festival|futties|birthday|future|trailblazers|ultimate)/.test(type);
+    }
+
+    function renderRewardCards(cards, reward) {
+      const box = document.getElementById("rewardCards");
+      const topPull = cards[0];
+      box.innerHTML = cards.map(player => `
+        <div class="reward-card">
+          ${renderFcCard(player, { pos: player.pos, role: player.role })}
+          <b>${shortName(player.name)}</b>
+        </div>
+      `).join("");
+      document.getElementById("rewardStatus").innerHTML = `${reward.postMessage} En büyük çekim: <b>${topPull ? `${topPull.name} ${topPull.ovr}` : "yok"}</b>`;
+    }
+
+    function renderResultChat(won, match) {
+      const chat = document.getElementById("resultChat");
+      const wins = state.wins;
+      const losses = state.losses;
+      const played = state.results.length;
+      const context = resultContext(wins, losses, played, won);
+      const messages = [
+        ...sample(chatMessages.neutral, 5),
+        ...sample(chatMessages[context] || chatMessages.mid, 8),
+        ...sample(won ? chatMessages.win : chatMessages.loss, 4)
+      ].slice(0, 15);
+      chat.innerHTML = messages.map(item => `
+        <div class="chat-line ${item.tone}">
+          <b>${item.user}</b>
+          <span>${item.text.replace("{score}", `${wins}-${losses}`).replace("{match}", `${match.home}-${match.away}`)}</span>
+        </div>
+      `).join("");
+      chat.scrollTop = 0;
+    }
+
+    function resultContext(wins, losses, played, won) {
+      if (wins === 15 && losses === 0) return "perfect";
+      if (wins >= 14 && losses <= 1) return "nearPerfect";
+      if (wins >= 11) return "high";
+      if (wins >= 8) return "mid";
+      if (played <= 3 && losses >= 1) return "earlyPain";
+      return won ? "climb" : "low";
+    }
+
+    const chatMessages = {
+      neutral: [
+        { user: "futkolik", text: "nt abi", tone: "support" },
+        { user: "mertinho", text: "eller titredi sonlarda", tone: "meme" },
+        { user: "chatVAR", text: "bu oyun normal değil", tone: "salt" },
+        { user: "takipci1907", text: "devam devam odak", tone: "support" },
+        { user: "pressDelisi", text: "rakibin pres ayarı kaçtı acaba", tone: "meme" },
+        { user: "sessizMod", text: "chat sakin", tone: "support" },
+        { user: "futbolAkli", text: "takım iyi ama bekler yoruldu", tone: "neutral" },
+        { user: "kramponcu", text: "sonraki maç daha rahat", tone: "support" }
+      ],
+      perfect: [
+        { user: "eliteci", text: "15-0 geldi mi be", tone: "support" },
+        { user: "chatPatladi", text: "WL bitti, mahalle sustu", tone: "meme" },
+        { user: "rakipBulucu", text: "bu saatte kimse girmesin artık", tone: "meme" },
+        { user: "helalci", text: "eline sağlık abi, tertemiz run", tone: "support" },
+        { user: "zenDedektifi", text: "makro değil mental bu", tone: "meme" },
+        { user: "klavyeHocasi", text: "kusursuz seri, ders gibi", tone: "support" },
+        { user: "gececi", text: "chat bunu kliple", tone: "meme" },
+        { user: "forvetSevdasi", text: "forvetler işi kapattı", tone: "support" }
+      ],
+      nearPerfect: [
+        { user: "olmadiBe", text: "hahah yine mi 15 olmadı", tone: "salt" },
+        { user: "ntci", text: "{score} kötü değil abi, nt", tone: "support" },
+        { user: "sonMacTravmasi", text: "tek mağlubiyet yine akla takılacak", tone: "meme" },
+        { user: "eliteKapi", text: "14 win yine elite kapısı", tone: "support" },
+        { user: "chatToxic", text: "o bir maçı vermeyecektin", tone: "salt" },
+        { user: "modlarNerde", text: "chat acımasız bugün", tone: "meme" },
+        { user: "sakinOyuncu", text: "bu seri gayet iyi, devam", tone: "support" },
+        { user: "scriptciDayi", text: "tek loss kesin oyun kararı", tone: "salt" }
+      ],
+      high: [
+        { user: "rankSevdasi", text: "{score} iyi seri, bozma", tone: "support" },
+        { user: "sneijder10", text: "11 üstü tamamdır abi", tone: "support" },
+        { user: "moralBozan", text: "15 hayali başka bahara mı", tone: "salt" },
+        { user: "sabirli", text: "bu noktadan sonra sakin oyna", tone: "support" },
+        { user: "keskinChat", text: "iki maç fazla gitmiş ama toparlanır", tone: "meme" },
+        { user: "futDoktoru", text: "orta saha yoruldu, drafta bak", tone: "neutral" },
+        { user: "tribun", text: "chat inanıyor", tone: "support" },
+        { user: "tackleCanavari", text: "rakipler hep kayarak geliyor", tone: "meme" }
+      ],
+      mid: [
+        { user: "gercekci", text: "hahahah bu 11 oyunu değil abi", tone: "salt" },
+        { user: "destekci", text: "buradan 11 çıkar, sakin", tone: "support" },
+        { user: "ortaSaha", text: "kimya düşükse maçlar böyle kilitleniyor", tone: "neutral" },
+        { user: "klasikChat", text: "nt, son vuruşlar kaçtı", tone: "support" },
+        { user: "tiltMetre", text: "tilt olma, sıradaki bedava olabilir", tone: "support" },
+        { user: "lafSokar", text: "bu savunmayla 15 zor zaten", tone: "salt" },
+        { user: "yayinciDostu", text: "içerik güzel, seri orta", tone: "meme" },
+        { user: "pasci", text: "biraz daha top çevir", tone: "neutral" }
+      ],
+      earlyPain: [
+        { user: "ilkMacMi", text: "ilk maçtan mı gitti", tone: "salt" },
+        { user: "ntAbi", text: "nt abi daha başı", tone: "support" },
+        { user: "kahkaha", text: "0-1 ekranı geldi yine", tone: "meme" },
+        { user: "resetci", text: "ben olsam resetlerdim", tone: "salt" },
+        { user: "sabir", text: "daha 14 maç var, sakin", tone: "support" },
+        { user: "oyunBiliyor", text: "oyun ilk maçtan mesajı verdi", tone: "meme" },
+        { user: "moralci", text: "kadro iyi, toparlar", tone: "support" },
+        { user: "zehirliChat", text: "15-0 videosu ısınmada bitti", tone: "salt" }
+      ],
+      climb: [
+        { user: "seriBasladi", text: "tamam şimdi seri başlar", tone: "support" },
+        { user: "chatCoach", text: "son maçtaki tempo iyi", tone: "neutral" },
+        { user: "gazaGetiren", text: "bir win daha, hadi", tone: "support" },
+        { user: "lafci", text: "rakip biraz eli ayağına dolaştı", tone: "meme" },
+        { user: "fifaAkademi", text: "bu maç iyi kapandı", tone: "support" },
+        { user: "skorcu", text: "{match} net skor", tone: "neutral" },
+        { user: "izleyici", text: "böyle oynarsan devamı gelir", tone: "support" },
+        { user: "tiltAvcisi", text: "chat tilt bekliyor ama gelmedi", tone: "meme" }
+      ],
+      low: [
+        { user: "sertYorum", text: "bugün WL seni seçmemiş", tone: "salt" },
+        { user: "moralci", text: "kötü run olur, geçer", tone: "support" },
+        { user: "gercekler", text: "bu kadro biraz fazla kumar", tone: "neutral" },
+        { user: "toksikAmaHakli", text: "defans yok abi defans", tone: "salt" },
+        { user: "ntci", text: "nt, en azından içerik var", tone: "support" },
+        { user: "chatYangin", text: "chat yine yangın yeri", tone: "meme" },
+        { user: "toparlayan", text: "bir sonraki draft daha iyi gelir", tone: "support" },
+        { user: "makroDedektif", text: "rakip kesin bir şeyler bağlıydı", tone: "meme" }
+      ],
+      win: [
+        { user: "golSevinci", text: "güzel win", tone: "support" },
+        { user: "kombo", text: "bu maçta paslar aktı", tone: "support" },
+        { user: "klipci", text: "son gol kliplik", tone: "meme" },
+        { user: "sakinChat", text: "win windir", tone: "support" },
+        { user: "yorumcu", text: "skor oyundan netti", tone: "neutral" }
+      ],
+      loss: [
+        { user: "gecmisOlsun", text: "nt abi", tone: "support" },
+        { user: "tuzluk", text: "bir tane daha gitti", tone: "salt" },
+        { user: "bahanePaneli", text: "algılamadı yazıyorum", tone: "meme" },
+        { user: "sakin", text: "tilt yok, devam", tone: "support" },
+        { user: "acımasız", text: "bu maç verilmezdi", tone: "salt" }
+      ]
+    };
+
+    function renderRunTracks() {
+      ["runTrack", "resultTrack"].forEach(id => {
+        const track = document.getElementById(id);
+        track.innerHTML = "";
+        for (let i = 0; i < 15; i += 1) {
+          const dot = document.createElement("div");
+          dot.className = `run-dot ${state.results[i] || ""}`;
+          track.appendChild(dot);
+        }
+      });
+    }
+
+    function showExcuse(label = "Bahane kamerası", force = false) {
+      if (!force && Math.random() > .62) return;
+      window.clearTimeout(excuseTimer);
+      document.getElementById("excuseLabel").textContent = label;
+      document.getElementById("excuseText").textContent = randomItem(excuses);
+      document.getElementById("excusePop").classList.add("show");
+      excuseTimer = window.setTimeout(hideExcuse, 2800);
+    }
+
+    function hideExcuse() {
+      document.getElementById("excusePop").classList.remove("show");
+    }
+
+    function shortName(name) {
+      return name.split(" ").slice(-1)[0].toUpperCase();
+    }
+
+    function saveState() {
+      localStorage.setItem(saveKey, JSON.stringify({
+        setupFormations: state.setupFormations,
+        setupTactics: state.setupTactics.map(tactic => tactic.id),
+        setupManagers: state.setupManagers.map(manager => manager.id),
+        formation: state.formation,
+        tactic: state.tactic?.id || null,
+        manager: state.manager?.id || null,
+        picks: state.picks.map(player => player?.id || null),
+        pendingPlayer: state.pendingPlayer?.id || null,
+        swapIndex: state.swapIndex,
+        draftOrder: state.draftOrder,
+        wins: state.wins,
+        losses: state.losses,
+        results: state.results,
+        goalsFor: state.goalsFor,
+        goalsAgainst: state.goalsAgainst,
+        playerStats: state.playerStats
+      }));
+    }
+
+    function loadState() {
+      try {
+        const data = JSON.parse(localStorage.getItem(saveKey) || "null");
+        if (!data) return false;
+        state.setupFormations = data.setupFormations || [];
+        state.setupTactics = (data.setupTactics || []).map(id => tacticPool.find(tactic => tactic.id === id)).filter(Boolean);
+        state.setupManagers = (data.setupManagers || []).map(id => managers.find(manager => manager.id === id)).filter(Boolean);
+        state.formation = data.formation || null;
+        state.tactic = tacticPool.find(tactic => tactic.id === data.tactic) || null;
+        state.manager = managers.find(manager => manager.id === data.manager) || null;
+        state.picks = (data.picks || []).map(id => id ? players.find(player => player.id === id) || null : null);
+        state.pendingPlayer = players.find(player => player.id === data.pendingPlayer) || null;
+        state.swapIndex = Number.isInteger(data.swapIndex) ? data.swapIndex : null;
+        state.draftOrder = data.draftOrder || [];
+        state.wins = data.wins || 0;
+        state.losses = data.losses || 0;
+        state.results = data.results || [];
+        state.goalsFor = data.goalsFor || 0;
+        state.goalsAgainst = data.goalsAgainst || 0;
+        state.playerStats = data.playerStats || {};
+        return true;
+      } catch (error) {
+        localStorage.removeItem(saveKey);
+        return false;
+      }
+    }
+
+    function resetRun() {
+      localStorage.removeItem(saveKey);
+      Object.assign(state, {
+        setupFormations: [],
+        setupTactics: [],
+        setupManagers: [],
+        formation: null,
+        tactic: null,
+        manager: null,
+        picks: [],
+        options: [],
+        pendingPlayer: null,
+        swapIndex: null,
+        draftOrder: [],
+        wins: 0,
+        losses: 0,
+        results: [],
+        goalsFor: 0,
+        goalsAgainst: 0,
+        playerStats: {},
+        match: null
+      });
+      initSetup();
+      renderFormationOptions();
+      showScreen("formation");
+    }
+
+    document.getElementById("rollBtn").addEventListener("click", rollOptions);
+    document.getElementById("returnToWL").addEventListener("click", () => {
+      renderReady();
+      showScreen("boost");
+    });
+    document.getElementById("resetBtn").addEventListener("click", resetRun);
+    document.getElementById("startRun").addEventListener("click", startMatch);
+    document.getElementById("readyDraft").addEventListener("click", () => {
+      renderDraft();
+      showScreen("draft");
+    });
+    document.getElementById("readyFinish").addEventListener("click", finishWeekendLeague);
+    document.getElementById("nextEvent").addEventListener("click", () => {
+      if (!state.match) return;
+      state.match.paused = !state.match.paused;
+      document.getElementById("nextEvent").textContent = state.match.paused ? "Devam" : "Duraklat";
+    });
+    document.getElementById("quickSim").addEventListener("click", () => {
+      if (!state.match) return;
+      while (state.match && !state.match.finished && state.match.phase !== "penalties") {
+        if (state.match.clockIndex < state.match.timeline.length) tickMatch();
+        else resolveAfterRegularTime();
+      }
+      if (state.match?.phase === "penalties") {
+        while (state.match && !state.match.finished && state.match.phase === "penalties" && state.match.penaltyIndex < 16) tickPenalty();
+      }
+      if (state.match && !state.match.finished) finishMatch();
+    });
+    document.getElementById("finishRunResult").addEventListener("click", finishWeekendLeague);
+    document.getElementById("finishRun").addEventListener("click", finishWeekendLeague);
+    document.getElementById("nextMatch").addEventListener("click", startMatch);
+    document.getElementById("openRewards").addEventListener("click", openRewardPack);
+    document.getElementById("shareResult").addEventListener("click", shareSeasonResult);
+    document.getElementById("replayRun").addEventListener("click", resetRun);
+    document.getElementById("excuseClose").addEventListener("click", hideExcuse);
+
+    async function boot() {
+      await loadExternalCards();
+      loadState();
+      initSetup();
+      renderFormationOptions();
+      renderTacticOptions();
+      if (!state.formation) {
+        showScreen("formation");
+      } else if (!state.tactic) {
+        showScreen("tactic");
+      } else if (pickCount() < 13) {
+        renderDraft();
+        showScreen("draft");
+      } else if (!state.manager) {
+        renderManagerOptions();
+        showScreen("manager");
+      } else {
+        renderReady();
+        showScreen("boost");
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>

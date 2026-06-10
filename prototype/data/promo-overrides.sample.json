@@ -1,0 +1,28 @@
+[
+  {
+    "name": "Ousmane Dembélé",
+    "pos": "ST",
+    "cardType": "TOTY",
+    "ovr": 97,
+    "pac": 97,
+    "sho": 94,
+    "pas": 90,
+    "dri": 95,
+    "def": 60,
+    "phy": 77,
+    "source": "Manual Promo Seed"
+  },
+  {
+    "name": "Marco Asensio",
+    "pos": "RW",
+    "cardType": "Thunderstruck",
+    "ovr": 96,
+    "pac": 91,
+    "sho": 93,
+    "pas": 95,
+    "dri": 96,
+    "def": 70,
+    "phy": 81,
+    "source": "Manual Promo Seed"
+  }
+]
