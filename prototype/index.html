@@ -2169,7 +2169,7 @@
         if (!response.ok) return;
         const cards = await response.json();
         if (!Array.isArray(cards) || cards.length < 14) return;
-        players = cards.map(normalizeCard).filter(card => card.id && card.name && card.pos);
+        players = cards.map(normalizeCard).filter(card => card.id && card.name && card.pos && isDraftEligibleCard(card));
       } catch (error) {
         // Local prototype keeps using fallback cards when no external data exists.
       }
@@ -2200,6 +2200,12 @@
         phy: Number(card.phy || card.physical || 60),
         clutch: Number(card.clutch || card.composure || card.ovr || card.rating || 75)
       };
+    }
+
+    function isDraftEligibleCard(card) {
+      const type = `${card.cardType || ""}`.toLowerCase();
+      if (type.includes("bronze") || type.includes("silver")) return false;
+      return card.ovr >= 75;
     }
 
     const screens = {
@@ -2381,7 +2387,7 @@
       renderChemPanel();
       renderPickCards();
       document.getElementById("draftHint").textContent = draftHint();
-      document.getElementById("rollBtn").disabled = pickCount() >= 14 || !!state.pendingPlayer;
+      document.getElementById("rollBtn").disabled = pickCount() >= 14 || !!state.pendingPlayer || state.options.length > 0;
       const showReturn = canReturnToWL();
       document.getElementById("returnToWL").classList.toggle("hidden", !showReturn);
       document.querySelector(".draft-actions").classList.toggle("has-return", showReturn);
@@ -2508,6 +2514,13 @@
       const index = currentPickIndex();
       const unused = players.filter(player => !draftedPlayers().some(pick => pick.id === player.id));
       const matching = unused.filter(player => slot.role === "BEN" || canPlayerPlaySlot(player, slot));
+      if (!matching.length) {
+        state.options = [];
+        saveState();
+        renderDraft();
+        document.getElementById("draftHint").textContent = "Bu mevki için uygun kart kalmadı. Bir sonraki slotu dene.";
+        return;
+      }
       state.options = sample(matching, Math.min(3, matching.length));
       state.activePickIndex = index;
       saveState();
