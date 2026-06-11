@@ -283,8 +283,8 @@
       position: absolute;
       left: var(--x);
       top: var(--y);
-      width: 82px;
-      min-height: 110px;
+      width: 104px;
+      min-height: 138px;
       transform: translate(-50%, -50%);
       display: grid;
       justify-items: center;
@@ -303,8 +303,8 @@
     }
 
     .slot-card {
-      width: 72px;
-      height: 96px;
+      width: 92px;
+      height: 124px;
       border: 2px dashed var(--role);
       border-radius: 14px 14px 9px 9px;
       background: rgba(18, 22, 26, .72);
@@ -316,22 +316,26 @@
 
     .slot-card.empty:before {
       content: "+";
-      width: 30px;
+      width: 34px;
       aspect-ratio: 1;
       border: 2px solid #00e572;
       border-radius: 50%;
       color: #00e572;
       display: grid;
       place-items: center;
-      font-size: 27px;
+      font-size: 31px;
       line-height: 1;
     }
 
     .slot-card.filled { border: 0; background: transparent; box-shadow: none; }
 
     .slot .fc-card {
-      width: 72px;
-      height: 96px;
+      width: 92px;
+      height: 124px;
+    }
+
+    .slot .fc-card.real-card {
+      filter: drop-shadow(0 12px 14px rgba(0,0,0,.55));
     }
 
     .slot.swap-target .slot-card,
@@ -1764,9 +1768,9 @@
         grid-template-rows: 1fr auto;
         align-items: center;
       }
-      .slot { width: 66px; min-height: 92px; }
+      .slot { width: 82px; min-height: 112px; }
       .slot-card,
-      .slot .fc-card { width: 60px; height: 82px; }
+      .slot .fc-card { width: 76px; height: 104px; }
       .fc-rating { font-size: 13px; left: 5px; top: 6px; }
       .fc-pos { font-size: 7px; left: 5px; top: 19px; }
       .fc-photo { width: 39px; height: 39px; top: 13px; }
