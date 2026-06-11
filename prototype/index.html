@@ -477,7 +477,7 @@
 
     .bench {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -493,6 +493,7 @@
       color: #aebbd2;
       font: 800 12px/1 Arial, sans-serif;
       letter-spacing: 0;
+      min-width: 0;
     }
 
     .bench-slot b {
@@ -1414,6 +1415,346 @@
       cursor: pointer;
     }
 
+    /* EAFC-inspired visual pass */
+    :root {
+      --bg: #05080c;
+      --navy: #12162a;
+      --panel: rgba(9, 16, 27, .88);
+      --panel-2: rgba(15, 25, 40, .92);
+      --line: rgba(108, 255, 194, .18);
+      --text: #f5f8ff;
+      --muted: #93a6bc;
+      --gold: #f7cf45;
+      --green: #8cff3f;
+      --lime: #6dff73;
+      --blue: #23a7ff;
+      --cyan: #58f0ff;
+      font-family: "Arial", "Segoe UI", sans-serif;
+    }
+
+    body {
+      background:
+        linear-gradient(120deg, rgba(140, 255, 63, .08), transparent 28%),
+        radial-gradient(circle at 72% 8%, rgba(35, 167, 255, .28), transparent 22rem),
+        radial-gradient(circle at 18% 0%, rgba(247, 207, 69, .13), transparent 18rem),
+        linear-gradient(180deg, #06090f 0%, #111044 42%, #05080c 100%);
+      letter-spacing: 0;
+    }
+
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.7), transparent 70%);
+    }
+
+    .app {
+      width: min(100%, 610px);
+      padding: max(14px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+    }
+
+    .setup-screen {
+      justify-content: flex-start;
+      padding-top: max(38px, env(safe-area-inset-top));
+    }
+
+    .setup-brand strong,
+    .mini-brand,
+    .season-score {
+      font-family: "Arial Black", Impact, sans-serif;
+      letter-spacing: -.04em;
+    }
+
+    .setup-brand strong {
+      font-size: 82px;
+      color: var(--green);
+      text-shadow: 0 0 26px rgba(140, 255, 63, .32);
+    }
+
+    .setup-brand strong span,
+    .mini-brand span {
+      color: #f4f7ff;
+    }
+
+    .setup-brand small,
+    .sub-brand,
+    .step-kicker,
+    .season-label {
+      color: #a8b8c9;
+      letter-spacing: .26em;
+    }
+
+    .setup-title,
+    .match-phase,
+    .season-title,
+    .result strong {
+      font-family: "Arial Black", Impact, sans-serif;
+      letter-spacing: -.02em;
+      text-transform: uppercase;
+    }
+
+    .setup-option,
+    .info-card,
+    .manager-strip,
+    .chem-panel,
+    .panel,
+    .bench-slot,
+    .stream-chat,
+    .season-stat,
+    .player-stats,
+    .reward-panel {
+      border: 1px solid rgba(122, 255, 194, .17);
+      background:
+        linear-gradient(180deg, rgba(18, 29, 44, .94), rgba(8, 14, 24, .94)),
+        rgba(8, 14, 24, .94);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 16px 40px rgba(0,0,0,.22);
+    }
+
+    .panel {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .setup-option {
+      min-height: 66px;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    .setup-option:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, var(--green), var(--cyan));
+      opacity: .85;
+    }
+
+    .setup-option:hover {
+      transform: translateY(-1px);
+      border-color: rgba(140, 255, 63, .45);
+      background: linear-gradient(180deg, rgba(23, 38, 55, .98), rgba(10, 17, 28, .98));
+    }
+
+    .setup-option b,
+    .setup-option strong {
+      color: #f4f7ff;
+      font-family: "Arial Black", Impact, sans-serif;
+      font-size: 27px;
+      letter-spacing: -.02em;
+    }
+
+    .setup-option span {
+      color: #a8b8c9;
+      font-weight: 800;
+    }
+
+    .topbar {
+      position: sticky;
+      top: max(8px, env(safe-area-inset-top));
+      z-index: 8;
+      padding: 8px 10px;
+      border: 1px solid rgba(122, 255, 194, .14);
+      border-radius: 10px;
+      background: rgba(5, 10, 17, .82);
+      backdrop-filter: blur(16px);
+    }
+
+    .mini-brand {
+      color: var(--green);
+      font-size: 32px;
+    }
+
+    .icon-btn,
+    .primary,
+    .secondary,
+    .excuse-close {
+      border-radius: 8px;
+      text-transform: uppercase;
+      font-family: "Arial Black", Impact, sans-serif;
+      letter-spacing: -.01em;
+    }
+
+    .primary {
+      background: linear-gradient(180deg, #b6ff4b 0%, #64e22d 52%, #3dad1d 100%);
+      color: #020805;
+      box-shadow: 0 0 0 1px rgba(206,255,129,.28), 0 14px 34px rgba(109, 255, 115, .26);
+    }
+
+    .secondary {
+      border: 1px solid rgba(88, 240, 255, .14);
+      background: linear-gradient(180deg, rgba(22, 37, 57, .96), rgba(10, 18, 31, .96));
+      color: #f4f7ff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .primary:not(:disabled):hover,
+    .secondary:not(:disabled):hover,
+    .icon-btn:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .info-grid {
+      gap: 9px;
+    }
+
+    .info-card {
+      border-radius: 8px;
+      min-height: 58px;
+      position: relative;
+    }
+
+    .info-card:after,
+    .panel:after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(88,240,255,.42), transparent);
+      pointer-events: none;
+    }
+
+    .info-card small,
+    .panel-title h2,
+    .reward-head,
+    .chem-breakdown b,
+    .season-stat small {
+      color: #9fb1c4;
+      font-family: "Arial", sans-serif;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .info-card b,
+    .season-stat b {
+      color: #f7fbff;
+      font-family: "Arial Black", Impact, sans-serif;
+      letter-spacing: -.03em;
+    }
+
+    .manager-strip {
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(247, 207, 69, .22), rgba(88, 240, 255, .06), rgba(8, 14, 24, .94));
+    }
+
+    .manager-strip small {
+      color: var(--gold);
+    }
+
+    .draft-board,
+    .summary-pitch {
+      border-color: rgba(109, 255, 115, .5);
+      border-radius: 12px;
+      box-shadow:
+        0 0 0 1px rgba(88, 240, 255, .08),
+        0 20px 52px rgba(0,0,0,.36),
+        inset 0 0 34px rgba(109,255,115,.08);
+    }
+
+    .slot-card,
+    .bench-slot {
+      border-radius: 8px;
+      background: rgba(5, 10, 17, .68);
+      backdrop-filter: blur(5px);
+    }
+
+    .slot-card.empty:before {
+      border-color: var(--green);
+      color: var(--green);
+      box-shadow: 0 0 16px rgba(140,255,63,.28);
+    }
+
+    .role-pill {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(4, 8, 14, .86);
+      color: #f4f7ff;
+    }
+
+    .player-card {
+      border-radius: 8px;
+      border-color: rgba(247, 207, 69, .32);
+      background:
+        radial-gradient(circle at 50% 12%, rgba(247,207,69,.16), transparent 38%),
+        linear-gradient(180deg, rgba(28, 23, 13, .98), rgba(9, 14, 22, .98));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 14px 28px rgba(0,0,0,.22);
+    }
+
+    .player-card.selected {
+      outline: 2px solid var(--green);
+      box-shadow: 0 0 0 1px rgba(140,255,63,.25), 0 0 26px rgba(140,255,63,.28);
+    }
+
+    .match-hero {
+      border-radius: 12px;
+      border-color: rgba(88, 240, 255, .2);
+      background:
+        radial-gradient(circle at var(--ball-x, 50%) var(--ball-y, 50%), rgba(255,255,255,.18), transparent 8rem),
+        linear-gradient(135deg, rgba(140,255,63,.12), transparent 34%),
+        linear-gradient(180deg, #0b1723, #050911);
+    }
+
+    .scoreline,
+    .match-clock {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(4, 8, 14, .78);
+      backdrop-filter: blur(12px);
+    }
+
+    .run-dot {
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.16);
+    }
+
+    .run-dot.win {
+      background: linear-gradient(90deg, #78ff34, #baff55);
+      box-shadow: 0 0 12px rgba(140,255,63,.28);
+    }
+
+    .run-dot.loss {
+      background: linear-gradient(90deg, #ff365b, #ff7b8f);
+    }
+
+    .event,
+    .chat-line,
+    .player-row {
+      border-bottom-color: rgba(255,255,255,.075);
+    }
+
+    .season-hero {
+      padding: 16px 8px 4px;
+      border-radius: 14px;
+      background:
+        radial-gradient(circle at 50% 12%, rgba(247,207,69,.14), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+    }
+
+    .season-score {
+      color: var(--gold);
+      text-shadow: 0 0 28px rgba(247,207,69,.42);
+    }
+
+    .reward-pack {
+      border-radius: 12px;
+      background:
+        linear-gradient(135deg, #d8ff53 0%, #58f0ff 38%, #f7cf45 68%, #07101a 100%);
+    }
+
     @media (max-width: 390px) {
       .setup-brand strong { font-size: 62px; }
       .pick-cards { grid-template-columns: 1fr; }
@@ -1476,7 +1817,7 @@
 
       <div class="info-grid">
         <div class="info-card"><small>FORMASYON</small><b id="formationLabel">-</b></div>
-        <div class="info-card"><small>SEÇİM</small><b id="pickLabel">0/13</b></div>
+        <div class="info-card"><small>SEÇİM</small><b id="pickLabel">0/14</b></div>
         <div class="info-card"><small>KİMYA</small><b id="chemLabel">0</b></div>
       </div>
 
@@ -1825,7 +2166,7 @@
         const response = await fetch("data/cards.json", { cache: "no-store" });
         if (!response.ok) return;
         const cards = await response.json();
-        if (!Array.isArray(cards) || cards.length < 13) return;
+        if (!Array.isArray(cards) || cards.length < 14) return;
         players = cards.map(normalizeCard).filter(card => card.id && card.name && card.pos);
       } catch (error) {
         // Local prototype keeps using fallback cards when no external data exists.
@@ -1937,7 +2278,12 @@
 
     function currentSlots() {
       if (!state.formation) return [];
-      return [...formationSlots(state.formation), { pos: "BEN", role: "BEN" }, { pos: "BEN", role: "BEN" }];
+      return [
+        ...formationSlots(state.formation),
+        { pos: "BEN", role: "BEN" },
+        { pos: "BEN", role: "BEN" },
+        { pos: "BEN", role: "BEN" }
+      ];
     }
 
     function currentPickSlot() {
@@ -2025,7 +2371,7 @@
 
     function renderDraft() {
       document.getElementById("formationLabel").textContent = state.formation || "-";
-      document.getElementById("pickLabel").textContent = `${pickCount()}/13`;
+      document.getElementById("pickLabel").textContent = `${pickCount()}/14`;
       document.getElementById("chemLabel").textContent = totalChem();
       document.getElementById("managerLabel").textContent = state.manager ? state.manager.name : "Kadrodan sonra";
       renderBoard();
@@ -2033,14 +2379,14 @@
       renderChemPanel();
       renderPickCards();
       document.getElementById("draftHint").textContent = draftHint();
-      document.getElementById("rollBtn").disabled = pickCount() >= 13 || !!state.pendingPlayer;
+      document.getElementById("rollBtn").disabled = pickCount() >= 14 || !!state.pendingPlayer;
       const showReturn = canReturnToWL();
       document.getElementById("returnToWL").classList.toggle("hidden", !showReturn);
       document.querySelector(".draft-actions").classList.toggle("has-return", showReturn);
     }
 
     function canReturnToWL() {
-      return pickCount() >= 13 && !!state.manager && state.results.length < 15;
+      return pickCount() >= 14 && !!state.manager && state.results.length < 15;
     }
 
     function renderBoard() {
@@ -2071,7 +2417,7 @@
     function renderBench() {
       const box = document.getElementById("bench");
       box.innerHTML = "";
-      [11, 12].forEach(index => {
+      [11, 12, 13].forEach(index => {
         const player = state.picks[index];
         const placeable = canPlaceInSlot({ pos: "BEN", role: "BEN" }, index);
         const swapTarget = canSwapTo(index);
@@ -2167,7 +2513,7 @@
     }
 
     function pickPlayer(player) {
-      if (pickCount() >= 13 || draftedPlayers().some(pick => pick.id === player.id)) return;
+      if (pickCount() >= 14 || draftedPlayers().some(pick => pick.id === player.id)) return;
       state.pendingPlayer = player;
       state.swapIndex = null;
       saveState();
@@ -2227,7 +2573,7 @@
       state.options = [];
       saveState();
       renderDraft();
-      if (pickCount() === 13) {
+      if (pickCount() === 14) {
         renderManagerOptions();
         showScreen("manager");
       }
@@ -2686,7 +3032,7 @@
           </div>
         `;
       }).join("");
-      bench.innerHTML = state.picks.slice(11, 13).filter(Boolean).map(player => `
+      bench.innerHTML = state.picks.slice(11, 14).filter(Boolean).map(player => `
         <span class="bench-chip" style="--role:${roleColors[player.role] || roleColors.BEN}">
           <i></i>${shortName(player.name)}
         </span>
@@ -2707,7 +3053,7 @@
     }
 
     function renderPlayerStatsTable() {
-      const rows = state.picks.slice(0, 13).filter(Boolean).map((player, index) => {
+      const rows = state.picks.slice(0, 14).filter(Boolean).map((player, index) => {
         const stats = state.playerStats[player.id] || { goals: 0, assists: 0, played: 0, ratingTotal: 0 };
         const slot = formationSlots(state.formation)[index] || { role: "BEN", pos: player.pos };
         const rating = stats.played ? (stats.ratingTotal / stats.played).toFixed(1) : "0.0";
@@ -2729,7 +3075,7 @@
     }
 
     function topPlayerBy(key) {
-      return state.picks.slice(0, 13).filter(Boolean)
+      return state.picks.slice(0, 14).filter(Boolean)
         .map(player => ({ player, stats: state.playerStats[player.id] || { goals: 0, assists: 0, played: 0, ratingTotal: 0 } }))
         .filter(item => item.stats[key] > 0)
         .sort((a, b) => b.stats[key] - a.stats[key])[0] || null;
@@ -2855,11 +3201,15 @@
         const py = y + height * slot.y / 100;
         drawShareCard(ctx, player, px - 36, py - 54, 72, 100, roleColors[slot.role]);
       });
-      state.picks.slice(11, 13).filter(Boolean).forEach((player, index) => {
-        const chipX = x + width / 2 - 160 + index * 170;
+      const benchPlayers = state.picks.slice(11, 14).filter(Boolean);
+      const chipWidth = 150;
+      const chipGap = 20;
+      const startX = x + width / 2 - (benchPlayers.length * chipWidth + (benchPlayers.length - 1) * chipGap) / 2;
+      benchPlayers.forEach((player, index) => {
+        const chipX = startX + index * (chipWidth + chipGap);
         const chipY = y + height + 24;
         ctx.fillStyle = "rgba(16,27,43,.96)";
-        roundRect(ctx, chipX, chipY, 150, 42, 12);
+        roundRect(ctx, chipX, chipY, chipWidth, 42, 12);
         ctx.fill();
         ctx.fillStyle = roleColors[player.role] || roleColors.BEN;
         ctx.beginPath();
@@ -2896,7 +3246,7 @@
     }
 
     function drawSharePlayerTable(ctx, x, y, width) {
-      const rows = state.picks.slice(0, 13).filter(Boolean).map((player, index) => {
+      const rows = state.picks.slice(0, 14).filter(Boolean).map((player, index) => {
         const stats = state.playerStats[player.id] || { goals: 0, assists: 0, played: 0, ratingTotal: 0 };
         const slot = formationSlots(state.formation)[index] || { role: "BEN", pos: player.pos };
         const rating = stats.played ? (stats.ratingTotal / stats.played).toFixed(1) : "0.0";
@@ -2963,7 +3313,7 @@
       state.goalsFor += match.home;
       state.goalsAgainst += match.away;
       const slots = formationSlots(state.formation);
-      state.picks.slice(0, 13).filter(Boolean).forEach((player, index) => {
+      state.picks.slice(0, 14).filter(Boolean).forEach((player, index) => {
         const slot = slots[index] || { role: "BEN", pos: player.pos };
         const stats = playerSeasonStats(player);
         const goals = match.scorers.filter(id => id === player.id).length;
@@ -3346,7 +3696,7 @@
         showScreen("formation");
       } else if (!state.tactic) {
         showScreen("tactic");
-      } else if (pickCount() < 13) {
+      } else if (pickCount() < 14) {
         renderDraft();
         showScreen("draft");
       } else if (!state.manager) {
