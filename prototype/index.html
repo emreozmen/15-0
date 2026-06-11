@@ -1368,20 +1368,29 @@
 
     .excuse-pop {
       position: fixed;
-      left: 50%;
-      bottom: max(18px, env(safe-area-inset-bottom));
-      width: min(calc(100% - 28px), 460px);
-      transform: translate(-50%, 140%);
+      inset: 0;
+      width: 100%;
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      transform: scale(.94);
       opacity: 0;
       pointer-events: none;
-      z-index: 20;
-      transition: transform .22s ease, opacity .22s ease;
+      z-index: 40;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,77,92,.24), transparent 24rem),
+        radial-gradient(circle at 50% 50%, rgba(88,240,255,.12), transparent 34rem),
+        rgba(2, 5, 10, .58);
+      backdrop-filter: blur(4px);
+      transition: transform .14s ease, opacity .14s ease;
     }
 
     .excuse-pop.show {
-      transform: translate(-50%, 0);
+      transform: scale(1);
       opacity: 1;
       pointer-events: auto;
+      animation: excuseFlash .42s ease both;
     }
 
     .excuse-box {
@@ -1389,24 +1398,30 @@
       grid-template-columns: 1fr auto;
       align-items: center;
       gap: 12px;
-      background: rgba(12, 16, 21, .96);
-      border: 1px solid rgba(255, 77, 92, .42);
-      border-radius: 10px;
-      padding: 12px;
-      box-shadow: 0 18px 42px rgba(0, 0, 0, .42);
+      width: min(92vw, 720px);
+      background:
+        linear-gradient(135deg, rgba(255,77,92,.28), transparent 34%),
+        linear-gradient(180deg, rgba(12, 16, 21, .98), rgba(4, 8, 14, .98));
+      border: 1px solid rgba(255, 77, 92, .55);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, .58), 0 0 44px rgba(255, 77, 92, .18);
     }
 
     .excuse-box span {
       color: var(--red);
-      font: 900 10px/1 Arial, sans-serif;
-      letter-spacing: .08em;
+      font: 900 12px/1 Arial, sans-serif;
+      letter-spacing: .18em;
       text-transform: uppercase;
     }
 
     .excuse-box p {
-      margin: 3px 0 0;
-      font-size: 17px;
-      line-height: 1.15;
+      margin: 8px 0 0;
+      color: #f8fbff;
+      font: 900 clamp(30px, 8vw, 58px)/.95 "Arial Black", Impact, sans-serif;
+      letter-spacing: -.04em;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(255,255,255,.12);
     }
 
     .excuse-close {
@@ -1417,6 +1432,13 @@
       background: #252e39;
       font-size: 18px;
       cursor: pointer;
+    }
+
+    @keyframes excuseFlash {
+      0% { filter: brightness(1.8); }
+      36% { filter: brightness(1); }
+      62% { filter: brightness(1.35); }
+      100% { filter: brightness(1); }
     }
 
     /* EAFC-inspired visual pass */
@@ -2135,6 +2157,7 @@
       "Tackle canavarı!",
       "Makro değilse kanal ismini değiştiririm, o kadar makro bu.",
       "Hay makronu.",
+      "0 ms abi.",
       "Bu animasyon bende niye hiç çıkmıyor?",
       "Oyunun kararını verdiği maçlardan biri."
     ];
@@ -3017,7 +3040,7 @@
       summary.classList.remove("hidden");
       document.getElementById("seasonScore").textContent = `${state.wins}-${state.losses}`;
       document.getElementById("seasonTitle").textContent = seasonTitle();
-      document.getElementById("seasonSub").textContent = `${state.formation} · ${state.tactic?.name || "Taktik yok"} · TD: ${state.manager?.name || "Yok"}`;
+      document.getElementById("seasonSub").textContent = seasonMessage();
       renderSummaryPitch();
       renderSeasonStats();
       renderPlayerStatsTable();
@@ -3030,6 +3053,13 @@
       if (state.wins === 11) return "BAŞ ALDIK";
       if (state.wins >= 8) return "CHAT TESELLİ EDİYOR";
       return "BU HAFTA OYUN SEÇMEDİ";
+    }
+
+    function seasonMessage() {
+      if (state.wins === 11) {
+        return "Bokunu çıkarırsanız bokunu çıkarırım, bir bakarsınız elleriniz bok olmuş. You know that?";
+      }
+      return `${state.formation} · ${state.tactic?.name || "Taktik yok"} · TD: ${state.manager?.name || "Yok"}`;
     }
 
     function renderSummaryPitch() {
@@ -3099,7 +3129,7 @@
     async function shareSeasonResult() {
       const topScorer = topPlayerBy("goals");
       const url = location.href.split("#")[0];
-      const text = `Weekend League Draft sonucum: ${state.wins}-${state.losses}\n${seasonTitle()}\nGol: ${state.goalsFor}-${state.goalsAgainst}${topScorer ? `\nGol kralı: ${topScorer.player.name} (${topScorer.stats.goals})` : ""}\n${url}`;
+      const text = `Weekend League Draft sonucum: ${state.wins}-${state.losses}\n${seasonTitle()}\n${seasonMessage()}\nGol: ${state.goalsFor}-${state.goalsAgainst}${topScorer ? `\nGol kralı: ${topScorer.player.name} (${topScorer.stats.goals})` : ""}\n${url}`;
       const image = await createShareImage();
       if (navigator.canShare?.({ files: [image] }) && navigator.share) {
         await navigator.share({ title: "Weekend League Draft", text, url, files: [image] });
@@ -3132,7 +3162,7 @@
       fitText(ctx, seasonTitle(), 600, 330, 1040);
       ctx.fillStyle = "#9fb0cf";
       ctx.font = "900 28px Arial";
-      fitText(ctx, `${state.formation} · ${state.tactic?.name || "Taktik"} · TD: ${state.manager?.name || "Yok"}`, 600, 386, 980);
+      fitText(ctx, seasonMessage(), 600, 386, 980);
 
       drawSectionLabel(ctx, "KADROMUZ", 90, 470);
       drawSharePitch(ctx, 270, 510, 660, 710);
