@@ -580,10 +580,10 @@
     }
 
     .player-card {
-      min-height: 154px;
+      min-height: 188px;
       border: 1px solid rgba(255, 212, 59, .45);
       border-radius: 10px;
-      padding: 8px;
+      padding: 10px 8px;
       background:
         linear-gradient(135deg, rgba(255, 235, 150, .22), rgba(116, 73, 18, .42)),
         #21180d;
@@ -596,8 +596,8 @@
     }
 
     .player-card .fc-card {
-      width: min(92px, 100%);
-      height: 128px;
+      width: min(112px, 100%);
+      height: 156px;
     }
 
     .player-card .pick-meta {
@@ -1757,16 +1757,13 @@
 
     @media (max-width: 390px) {
       .setup-brand strong { font-size: 62px; }
-      .pick-cards { grid-template-columns: 1fr; }
+      .pick-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .player-card {
-        min-height: 112px;
-        grid-template-columns: 56px 1fr;
-        grid-template-rows: auto auto auto;
+        min-height: 158px;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
         align-items: center;
       }
-      .card-head { grid-column: 1; }
-      .face { grid-column: 1; grid-row: 2 / span 2; }
-      .player-name, .meta { grid-column: 2; }
       .slot { width: 54px; }
       .slot-card,
       .fc-card { width: 52px; height: 70px; }
@@ -1775,6 +1772,7 @@
       .fc-photo { width: 39px; height: 39px; top: 13px; }
       .fc-name { font-size: 7px; bottom: 16px; left: 4px; right: 4px; }
       .fc-stats { font-size: 5px; bottom: 5px; left: 3px; right: 3px; }
+      .player-card .fc-card { width: min(104px, 100%); height: 144px; }
     }
   </style>
 </head>
